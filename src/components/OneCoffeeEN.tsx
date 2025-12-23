@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Coffee,
   Clock,
@@ -7,10 +8,15 @@ import {
   Calendar,
   Shield,
   Lightbulb,
-  ArrowRight
+  ArrowRight,
+  Mail,
+  Linkedin,
+  ChevronDown
 } from 'lucide-react';
 
 export default function OneCoffeeEN() {
+  const [isContactsOpen, setIsContactsOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -23,6 +29,39 @@ export default function OneCoffeeEN() {
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-600 hover:text-amber-700 transition-colors">How it works</a>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setIsContactsOpen(!isContactsOpen)}
+                  onBlur={() => setTimeout(() => setIsContactsOpen(false), 200)}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-amber-700 transition-colors focus:outline-none"
+                >
+                  <span>Contacts</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isContactsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isContactsOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <a 
+                      href="mailto:contact@one-coffee.it" 
+                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>contact@one-coffee.it</span>
+                    </a>
+                    <a 
+                      href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
+                    >
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
               <a href="#why" className="text-gray-600 hover:text-amber-700 transition-colors">Why</a>
               <a href="#faq" className="text-gray-600 hover:text-amber-700 transition-colors">FAQ</a>
               <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6mep4oIBGryk1h7AI0PMq5YiolcwU1IPPp39PCtxkrDCtyg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="bg-amber-700 text-white px-6 py-2 rounded-full font-medium hover:bg-amber-800 transition-all hover:scale-105 inline-block">
@@ -302,7 +341,7 @@ export default function OneCoffeeEN() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12 mb-12">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Coffee className="w-8 h-8 text-amber-500" />
@@ -323,11 +362,35 @@ export default function OneCoffeeEN() {
             </div>
 
             <div>
+              <h4 className="text-white font-semibold mb-4">Social</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a
+                    href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-amber-500 transition-colors"
+                  >
+                    LinkedIn
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:contact@one-coffee.it"
+                    className="hover:text-amber-500 transition-colors"
+                  >
+                    contact@one-coffee.it
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
                 <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy Policy</a></li>
                 <li><a href="#" className="hover:text-amber-500 transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Contact</a></li>
+                <li><a href="mailto:contact@one-coffee.it" className="hover:text-amber-500 transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
