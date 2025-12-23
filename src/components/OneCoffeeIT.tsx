@@ -101,9 +101,9 @@ export default function OneCoffeeIT() {
                   <span>Iscriviti</span>
                   <ArrowRight className="w-5 h-5" />
                 </a>
-                <button className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200">
+                <a href="#come-funziona" className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200 flex items-center justify-center">
                   Scopri di più
-                </button>
+                </a>
               </div>
             </div>
 
@@ -341,7 +341,7 @@ export default function OneCoffeeIT() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Coffee className="w-8 h-8 text-amber-500" />
@@ -382,15 +382,6 @@ export default function OneCoffeeIT() {
                     contact@one-coffee.it
                   </a>
                 </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Termini</a></li>
-                <li><a href="mailto:contact@one-coffee.it" className="hover:text-amber-500 transition-colors">Contatti</a></li>
               </ul>
             </div>
           </div>
