@@ -165,7 +165,7 @@ export default function OneCoffeeEN() {
           <div className="bg-gradient-to-r from-amber-700 to-orange-600 text-white p-10 rounded-3xl shadow-xl">
             <h3 className="text-2xl font-bold mb-4">The solution</h3>
             <p className="text-xl leading-relaxed">
-              20 minutes, one new person, one coffee. Nothing fancy, nothing weird, just real networking between people your age.
+              20 minutes, one new person, one coffee. Meet interesting students and young professionals for a coffee break that's truly worth your time. Offline, simple, and real!
             </p>
           </div>
         </div>

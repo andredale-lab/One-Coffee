@@ -165,7 +165,7 @@ export default function OneCoffeeIT() {
           <div className="bg-gradient-to-r from-amber-700 to-orange-600 text-white p-10 rounded-3xl shadow-xl">
             <h3 className="text-2xl font-bold mb-4">La soluzione</h3>
             <p className="text-xl leading-relaxed">
-              20 minuti, una persona nuova, un caffè. Niente male, niente bene, solo reale networking tra persone della tua generazione.
+              20 minuti, una persona nuova, un caffè. Incontra studenti e giovani professionisti interessanti per una pausa caffè che vale davvero il tuo tempo. Offline, semplice e reale!
             </p>
           </div>
         </div>
