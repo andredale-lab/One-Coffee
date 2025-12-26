@@ -387,7 +387,7 @@ export default function OneCoffeeEN() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12 mb-12">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Coffee className="w-8 h-8 text-amber-500" />
@@ -426,6 +426,23 @@ export default function OneCoffeeEN() {
                     className="hover:text-amber-500 transition-colors"
                   >
                     contact@one-coffee.it
+                  </a>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a
+                    href="https://www.iubenda.com/privacy-policy/98586684"
+                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-amber-500 transition-colors"
+                    title="Privacy Policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
                   </a>
                 </li>
               </ul>
