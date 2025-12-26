@@ -50,8 +50,8 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   };
 
   const filteredProfiles = profiles.filter(profile => 
-    profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.interests?.toLowerCase().includes(searchTerm.toLowerCase())
+    (profile.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (profile.interests || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const t = {
