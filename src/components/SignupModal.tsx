@@ -63,9 +63,10 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
         }
       });
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error logging in with Google:', error);
-      alert(error.message);
+      alert(message);
     }
   };
 
@@ -95,9 +96,10 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
         setStatus('idle');
         setFormData({ full_name: '', email: '', password: '', interests: '' });
       }, 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       setStatus('error');
-      setErrorMessage(error.message);
+      setErrorMessage(message);
     } finally {
       setLoading(false);
     }

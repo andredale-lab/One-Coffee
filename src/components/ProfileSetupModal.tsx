@@ -14,6 +14,7 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
+  if (!user) return null;
 
   const labels = {
     IT: {

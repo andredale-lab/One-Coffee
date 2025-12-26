@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useState, useEffect } from 'react';
-=======
-import { useState } from 'react';
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
 import {
   Coffee,
   Clock,
@@ -17,7 +13,6 @@ import {
   Linkedin,
   ChevronDown
 } from 'lucide-react';
-<<<<<<< HEAD
 import SignupModal from './SignupModal';
 import UserProfile from './UserProfile';
 import ProfileSetupModal from './ProfileSetupModal';
@@ -51,11 +46,6 @@ export default function OneCoffeeEN() {
 
     return () => subscription.unsubscribe();
   }, []);
-=======
-
-export default function OneCoffeeEN() {
-  const [isContactsOpen, setIsContactsOpen] = useState(false);
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
 
   return (
     <div className="min-h-screen bg-white">
@@ -104,7 +94,6 @@ export default function OneCoffeeEN() {
 
               <a href="#why" className="text-gray-600 hover:text-amber-700 transition-colors">Why</a>
               <a href="#faq" className="text-gray-600 hover:text-amber-700 transition-colors">FAQ</a>
-<<<<<<< HEAD
               {user ? (
                 <UserProfile user={user} lang="EN" />
               ) : (
@@ -112,11 +101,6 @@ export default function OneCoffeeEN() {
                   Sign up
                 </button>
               )}
-=======
-              <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6mep4oIBGryk1h7AI0PMq5YiolcwU1IPPp39PCtxkrDCtyg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="bg-amber-700 text-white px-6 py-2 rounded-full font-medium hover:bg-amber-800 transition-all hover:scale-105 inline-block">
-                Sign up
-              </a>
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
             </div>
           </div>
         </div>
@@ -147,7 +131,6 @@ export default function OneCoffeeEN() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-<<<<<<< HEAD
                 {user ? (
                   <div className="bg-amber-100 text-amber-800 px-8 py-4 rounded-full font-semibold text-lg flex items-center justify-center space-x-2 border border-amber-200 cursor-default">
                     <span>Welcome, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}!</span>
@@ -158,12 +141,6 @@ export default function OneCoffeeEN() {
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 )}
-=======
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6mep4oIBGryk1h7AI0PMq5YiolcwU1IPPp39PCtxkrDCtyg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="bg-amber-700 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-amber-800 transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-                  <span>Sign up</span>
-                  <ArrowRight className="w-5 h-5" />
-                </a>
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
                 <a href="#how-it-works" className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200 flex items-center justify-center">
                   Learn more
                 </a>
@@ -393,7 +370,6 @@ export default function OneCoffeeEN() {
             Ready for an interesting coffee?
           </h2>
 
-<<<<<<< HEAD
           {user ? (
             <div className="bg-white/10 text-white px-12 py-5 rounded-full font-bold text-xl inline-block border border-white/20 cursor-default">
               You're already in!
@@ -403,11 +379,6 @@ export default function OneCoffeeEN() {
               Sign up
             </button>
           )}
-=======
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6mep4oIBGryk1h7AI0PMq5YiolcwU1IPPp39PCtxkrDCtyg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="bg-white text-amber-700 px-12 py-5 rounded-full font-bold text-xl hover:bg-gray-100 transition-all hover:scale-105 shadow-2xl inline-block">
-            Sign up
-          </a>
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
 
           <p className="text-amber-100 text-lg">Limited spots. Milan only for now.</p>
         </div>
@@ -416,11 +387,7 @@ export default function OneCoffeeEN() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-<<<<<<< HEAD
           <div className="grid md:grid-cols-4 gap-12 mb-12">
-=======
-          <div className="grid md:grid-cols-3 gap-12 mb-12">
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Coffee className="w-8 h-8 text-amber-500" />
@@ -463,7 +430,6 @@ export default function OneCoffeeEN() {
                 </li>
               </ul>
             </div>
-<<<<<<< HEAD
             
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
@@ -481,8 +447,6 @@ export default function OneCoffeeEN() {
                 </li>
               </ul>
             </div>
-=======
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
           </div>
 
           <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
@@ -490,7 +454,6 @@ export default function OneCoffeeEN() {
           </div>
         </div>
       </footer>
-<<<<<<< HEAD
       <SignupModal 
         isOpen={isSignupOpen} 
         onClose={() => setIsSignupOpen(false)} 
@@ -504,8 +467,6 @@ export default function OneCoffeeEN() {
           lang="EN"
         />
       )}
-=======
->>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
     </div>
   );
 }
