@@ -16,6 +16,7 @@ import {
 import SignupModal from './SignupModal';
 import UserProfile from './UserProfile';
 import ProfileSetupModal from './ProfileSetupModal';
+import ProfileView from './ProfileView';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -24,6 +25,7 @@ export default function OneCoffeeIT() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [currentView, setCurrentView] = useState<'home' | 'profile'>('home');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,65 +49,8 @@ export default function OneCoffeeIT() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Coffee className="w-8 h-8 text-amber-700" />
-              <span className="text-xl font-bold text-gray-900">One-Coffee</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#come-funziona" className="text-gray-600 hover:text-amber-700 transition-colors">Come funziona</a>
-              
-              <div className="relative">
-                <button 
-                  onClick={() => setIsContactsOpen(!isContactsOpen)}
-                  onBlur={() => setTimeout(() => setIsContactsOpen(false), 200)}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-amber-700 transition-colors focus:outline-none"
-                >
-                  <span>Contatti</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isContactsOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {isContactsOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                    <a 
-                      href="mailto:contact@one-coffee.it" 
-                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
-                    >
-                      <Mail className="w-4 h-4" />
-                      <span>contact@one-coffee.it</span>
-                    </a>
-                    <a 
-                      href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn</span>
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              <a href="#perche" className="text-gray-600 hover:text-amber-700 transition-colors">Perché</a>
-              <a href="#faq" className="text-gray-600 hover:text-amber-700 transition-colors">FAQ</a>
-              {user ? (
-                <UserProfile user={user} lang="IT" />
-              ) : (
-                <button onClick={() => setIsSignupOpen(true)} className="bg-amber-700 text-white px-6 py-2 rounded-full font-medium hover:bg-amber-800 transition-all hover:scale-105 inline-block">
-                  Iscriviti
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
+  const HomeContent = () => (
+    <>
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <div className="max-w-7xl mx-auto">
@@ -383,6 +328,90 @@ export default function OneCoffeeIT() {
           <p className="text-amber-100 text-lg">Primi posti limitati. Solo Milano per ora.</p>
         </div>
       </section>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setCurrentView('home')}>
+              <Coffee className="w-8 h-8 text-amber-700" />
+              <span className="text-xl font-bold text-gray-900">One-Coffee</span>
+            </div>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              {user ? (
+                <>
+                  <button 
+                    onClick={() => setCurrentView('home')}
+                    className={`font-medium transition-colors ${currentView === 'home' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
+                  >
+                    Home
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView('profile')}
+                    className={`font-medium transition-colors ${currentView === 'profile' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
+                  >
+                    Profilo
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a href="#come-funziona" className="text-gray-600 hover:text-amber-700 transition-colors">Come funziona</a>
+                  <a href="#perche" className="text-gray-600 hover:text-amber-700 transition-colors">Perché</a>
+                  <a href="#faq" className="text-gray-600 hover:text-amber-700 transition-colors">FAQ</a>
+                </>
+              )}
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setIsContactsOpen(!isContactsOpen)}
+                  onBlur={() => setTimeout(() => setIsContactsOpen(false), 200)}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-amber-700 transition-colors focus:outline-none"
+                >
+                  <span>Contatti</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isContactsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isContactsOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <a 
+                      href="mailto:contact@one-coffee.it" 
+                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>contact@one-coffee.it</span>
+                    </a>
+                    <a 
+                      href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
+                    >
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {user ? (
+                <UserProfile user={user} lang="IT" />
+              ) : (
+                <button onClick={() => setIsSignupOpen(true)} className="bg-amber-700 text-white px-6 py-2 rounded-full font-medium hover:bg-amber-800 transition-all hover:scale-105 inline-block">
+                  Iscriviti
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      {currentView === 'home' ? <HomeContent /> : user && <ProfileView user={user} lang="IT" />}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
