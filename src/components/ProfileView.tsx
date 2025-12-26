@@ -118,6 +118,21 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
 
       if (error) throw error;
 
+      // Update public profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: formData.full_name,
+          interests: formData.interests,
+          email: user.email,
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        console.error('Error updating public profile:', profileError);
+      }
+
       setMessage({ type: 'success', text: t.success });
     } catch (error) {
       console.error('Error:', error);

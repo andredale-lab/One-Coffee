@@ -46,8 +46,20 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
 
       if (error) throw error;
       
-      // Also update the signups table if needed, or just rely on auth metadata
-      // For now we update auth metadata which is simpler
+      // Update public profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: user.user_metadata.full_name,
+          interests: interests,
+          email: user.email,
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        console.error('Error updating public profile:', profileError);
+      }
       
       onClose();
       window.location.reload(); // Reload to reflect changes

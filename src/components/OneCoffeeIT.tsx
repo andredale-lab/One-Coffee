@@ -17,6 +17,7 @@ import SignupModal from './SignupModal';
 import UserProfile from './UserProfile';
 import ProfileSetupModal from './ProfileSetupModal';
 import ProfileView from './ProfileView';
+import CommunityView from './CommunityView';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -25,7 +26,7 @@ export default function OneCoffeeIT() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'profile'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community'>('home');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -352,6 +353,12 @@ export default function OneCoffeeIT() {
                     Home
                   </button>
                   <button 
+                    onClick={() => setCurrentView('community')}
+                    className={`font-medium transition-colors ${currentView === 'community' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
+                  >
+                    Community
+                  </button>
+                  <button 
                     onClick={() => setCurrentView('profile')}
                     className={`font-medium transition-colors ${currentView === 'profile' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
                   >
@@ -411,7 +418,9 @@ export default function OneCoffeeIT() {
       </nav>
 
       {/* Main Content */}
-      {currentView === 'home' ? <HomeContent /> : user && <ProfileView user={user} lang="IT" />}
+      {currentView === 'home' && <HomeContent />}
+      {currentView === 'profile' && user && <ProfileView user={user} lang="IT" />}
+      {currentView === 'community' && user && <CommunityView user={user} lang="IT" />}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
