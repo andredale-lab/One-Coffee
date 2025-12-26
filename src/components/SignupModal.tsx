@@ -9,6 +9,7 @@ interface SignupModalProps {
 }
 
 export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps) {
+  const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -24,31 +25,49 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
   const labels = {
     IT: {
       title: 'Crea il tuo account',
+      loginTitle: 'Accedi al tuo account',
       name: 'Nome Completo',
       email: 'Email',
       password: 'Password',
       interests: 'Di cosa ti occupi? / Interessi',
       submit: 'Registrati',
+      loginSubmit: 'Accedi',
       submitting: 'Registrazione...',
+      loggingIn: 'Accesso in corso...',
       success: 'Controlla la tua email per confermare!',
+      loginSuccess: 'Bentornato!',
       error: 'Errore durante la registrazione.',
+      loginError: "Errore durante l'accesso.",
       close: 'Chiudi',
       continueWithGoogle: 'Continua con Google',
-      or: 'oppure'
+      or: 'oppure',
+      haveAccount: 'Hai già un account?',
+      noAccount: 'Non hai un account?',
+      loginLink: 'Accedi',
+      signupLink: 'Registrati'
     },
     EN: {
       title: 'Create your account',
+      loginTitle: 'Log in to your account',
       name: 'Full Name',
       email: 'Email',
       password: 'Password',
       interests: 'Occupation / Interests',
       submit: 'Sign Up',
+      loginSubmit: 'Log In',
       submitting: 'Signing up...',
+      loggingIn: 'Logging in...',
       success: 'Check your email to confirm!',
+      loginSuccess: 'Welcome back!',
       error: 'Error during registration.',
+      loginError: 'Error during login.',
       close: 'Close',
       continueWithGoogle: 'Continue with Google',
-      or: 'or'
+      or: 'or',
+      haveAccount: 'Already have an account?',
+      noAccount: "Don't have an account?",
+      loginLink: 'Log in',
+      signupLink: 'Sign up'
     }
   };
 
@@ -77,25 +96,41 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
     setErrorMessage('');
     
     try {
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name,
-            interests: formData.interests,
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        setStatus('success');
+        setTimeout(() => {
+          onClose();
+          setStatus('idle');
+          setFormData({ full_name: '', email: '', password: '', interests: '' });
+        }, 1500);
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.full_name,
+              interests: formData.interests,
+            }
           }
-        }
-      });
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setStatus('success');
-      setTimeout(() => {
-        onClose();
-        setStatus('idle');
-        setFormData({ full_name: '', email: '', password: '', interests: '' });
-      }, 3000);
+        setStatus('success');
+        setTimeout(() => {
+          onClose();
+          setStatus('idle');
+          setFormData({ full_name: '', email: '', password: '', interests: '' });
+        }, 3000);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       setStatus('error');
@@ -116,11 +151,11 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
             <X size={24} />
           </button>
           
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{isLogin ? t.loginTitle : t.title}</h2>
           
           {status === 'success' ? (
             <div className="text-center py-8">
-              <div className="text-green-600 text-xl font-semibold mb-2">✓ {t.success}</div>
+              <div className="text-green-600 text-xl font-semibold mb-2">✓ {isLogin ? t.loginSuccess : t.success}</div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -159,16 +194,18 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.name}</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                    value={formData.full_name}
-                    onChange={e => setFormData({...formData, full_name: e.target.value})}
-                  />
-                </div>
+                {!isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.name}</label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      value={formData.full_name}
+                      onChange={e => setFormData({...formData, full_name: e.target.value})}
+                    />
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
@@ -193,18 +230,20 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.interests}</label>
-                  <textarea
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                    value={formData.interests}
-                    onChange={e => setFormData({...formData, interests: e.target.value})}
-                  />
-                </div>
+                {!isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.interests}</label>
+                    <textarea
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      value={formData.interests}
+                      onChange={e => setFormData({...formData, interests: e.target.value})}
+                    />
+                  </div>
+                )}
 
                 {status === 'error' && (
-                  <p className="text-red-500 text-sm">{errorMessage || t.error}</p>
+                  <p className="text-red-500 text-sm">{errorMessage || (isLogin ? t.loginError : t.error)}</p>
                 )}
 
                 <button
@@ -212,9 +251,25 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
                   disabled={loading}
                   className="w-full bg-amber-700 text-white py-3 rounded-xl font-semibold hover:bg-amber-800 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? t.submitting : t.submit}
+                  {loading ? (isLogin ? t.loggingIn : t.submitting) : (isLogin ? t.loginSubmit : t.submit)}
                 </button>
               </form>
+
+              <div className="text-center mt-4">
+                <p className="text-sm text-gray-600">
+                  {isLogin ? t.noAccount : t.haveAccount}{' '}
+                  <button
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setStatus('idle');
+                      setErrorMessage('');
+                    }}
+                    className="font-semibold text-amber-700 hover:text-amber-800 transition-colors"
+                  >
+                    {isLogin ? t.signupLink : t.loginLink}
+                  </button>
+                </p>
+              </div>
             </div>
           )}
         </div>
