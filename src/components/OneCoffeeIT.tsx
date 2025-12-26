@@ -29,6 +29,13 @@ export default function OneCoffeeIT() {
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community'>('home');
 
   useEffect(() => {
+    // Check if we need to open signup modal (e.g. after "Create new account" click)
+    const shouldOpenSignup = localStorage.getItem('openSignupOnLoad');
+    if (shouldOpenSignup === 'true') {
+      setIsSignupOpen(true);
+      localStorage.removeItem('openSignupOnLoad');
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -494,7 +501,10 @@ export default function OneCoffeeIT() {
       </footer>
       <SignupModal 
         isOpen={isSignupOpen} 
-        onClose={() => setIsSignupOpen(false)} 
+        onClose={() => {
+          setIsSignupOpen(false);
+          localStorage.removeItem('openSignupOnLoad');
+        }} 
         lang="IT" 
       />
       {user && (

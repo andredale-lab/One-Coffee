@@ -27,13 +27,21 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
     window.location.reload();
   };
 
+  const handleNewAccount = async () => {
+    await supabase.auth.signOut();
+    localStorage.setItem('openSignupOnLoad', 'true');
+    window.location.reload();
+  };
+
   const t = {
     IT: {
       logout: 'Esci',
+      newAccount: 'Crea nuovo account',
       signedInAs: 'Accesso effettuato come'
     },
     EN: {
       logout: 'Sign out',
+      newAccount: 'Create new account',
       signedInAs: 'Signed in as'
     }
   }[lang];
@@ -65,6 +73,14 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
             <p className="text-sm font-semibold text-gray-900 truncate" title={user.email}>{user.email}</p>
           </div>
           
+          <button
+            onClick={handleNewAccount}
+            className="w-full text-left flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
+          >
+            <UserIcon className="w-4 h-4" />
+            <span>{t.newAccount}</span>
+          </button>
+
           <button
             onClick={handleLogout}
             className="w-full text-left flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-gray-700 hover:text-red-700 transition-colors"
