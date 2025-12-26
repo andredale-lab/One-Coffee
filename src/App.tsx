@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import OneCoffeeIT from './components/OneCoffeeIT';
 import OneCoffeeEN from './components/OneCoffeeEN';
 import { Globe } from 'lucide-react';
 import { supabase } from './lib/supabase/client';
+=======
+import { useState } from 'react';
+import OneCoffeeIT from './components/OneCoffeeIT';
+import OneCoffeeEN from './components/OneCoffeeEN';
+import { Globe } from 'lucide-react';
+>>>>>>> f7cfed5ed97c41a3d3b25cf5aefab9dd9be0ea61
 
 function App() {
   const [language, setLanguage] = useState<'it' | 'en'>('it');
