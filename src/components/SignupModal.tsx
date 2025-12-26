@@ -111,7 +111,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
           setFormData({ full_name: '', email: '', password: '', interests: '' });
         }, 1500);
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data: authData, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -123,6 +123,17 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
         });
 
         if (error) throw error;
+
+        // Try to insert into profiles if we have a user
+        if (authData.user) {
+          await supabase.from('profiles').upsert({
+            id: authData.user.id,
+            full_name: formData.full_name,
+            interests: formData.interests,
+            email: formData.email,
+            updated_at: new Date().toISOString()
+          });
+        }
 
         setStatus('success');
         setTimeout(() => {
