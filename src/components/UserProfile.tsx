@@ -27,53 +27,19 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
     window.location.reload();
   };
 
-  const handleNewAccount = async () => {
-    // Current session is already saved by OneCoffeeIT
-    // Use scope: 'local' to keep the session valid on server so we can switch back later
-    await supabase.auth.signOut({ scope: 'local' });
-    localStorage.setItem('openSignupOnLoad', 'true');
-    window.location.reload();
-  };
-
-  const handleSwitchAccount = async (session: any) => {
-    // First sign out locally to clear current session without revoking it
-    await supabase.auth.signOut({ scope: 'local' });
-    
-    // Then set the new session using tokens
-    const { error } = await supabase.auth.setSession({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-    });
-
-    if (error) {
-        console.error("Error switching account:", error);
-        alert("Sessione scaduta, per favore effettua di nuovo l'accesso.");
-        // If error, reload will show signed out state
-        window.location.reload();
-    } else {
-        window.location.reload();
-    }
-  };
-
   const t = {
     IT: {
       logout: 'Esci',
-      newAccount: 'Crea nuovo account',
       signedInAs: 'Accesso effettuato come'
     },
     EN: {
       logout: 'Sign out',
-      newAccount: 'Create new account',
       signedInAs: 'Signed in as'
     }
   }[lang];
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
   const avatarUrl = user.user_metadata?.avatar_url;
-
-  // Get other saved sessions
-  const storedSessions = JSON.parse(localStorage.getItem('one_coffee_sessions') || '{}');
-  const otherAccounts = Object.values(storedSessions).filter((s: any) => s.user.id !== user.id);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -98,39 +64,6 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
             <p className="text-xs text-gray-500">{t.signedInAs}</p>
             <p className="text-sm font-semibold text-gray-900 truncate" title={user.email}>{user.email}</p>
           </div>
-          
-          {/* Other Accounts List */}
-          {otherAccounts.length > 0 && (
-            <div className="py-2 border-b border-gray-100">
-              <p className="px-4 text-xs text-gray-500 mb-1">{t.switchAccount}</p>
-              {otherAccounts.map((account: any) => (
-                <button
-                  key={account.user.id}
-                  onClick={() => handleSwitchAccount(account.session)}
-                  className="w-full text-left flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-6 h-6 rounded-full overflow-hidden bg-amber-100 flex-shrink-0">
-                    {account.user.user_metadata?.avatar_url ? (
-                      <img src={account.user.user_metadata.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-amber-700 text-xs">
-                        <UserIcon className="w-3 h-3" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-700 truncate">{account.user.user_metadata?.full_name || account.user.email}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={handleNewAccount}
-            className="w-full text-left flex items-center space-x-3 px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors"
-          >
-            <UserIcon className="w-4 h-4" />
-            <span>{t.newAccount}</span>
-          </button>
 
           <button
             onClick={handleLogout}

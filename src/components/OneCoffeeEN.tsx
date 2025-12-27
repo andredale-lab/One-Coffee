@@ -29,6 +29,31 @@ export default function OneCoffeeEN() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+      
+
+
+      if (currentUser) {
+        // Sync profile to public table if missing
+        supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', currentUser.id)
+          .single()
+          .then(({ data }) => {
+            if (!data) {
+               supabase.from('profiles').upsert({
+                id: currentUser.id,
+                full_name: currentUser.user_metadata?.full_name || '',
+                interests: currentUser.user_metadata?.interests || '',
+                email: currentUser.email,
+                updated_at: new Date().toISOString()
+              }).then(({ error }) => {
+                if (error) console.error('Error syncing profile:', error);
+              });
+            }
+          });
+      }
+
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
       }
@@ -39,6 +64,31 @@ export default function OneCoffeeEN() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+
+
+
+      if (currentUser) {
+        // Sync profile to public table if missing
+        supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', currentUser.id)
+          .single()
+          .then(({ data }) => {
+            if (!data) {
+               supabase.from('profiles').upsert({
+                id: currentUser.id,
+                full_name: currentUser.user_metadata?.full_name || '',
+                interests: currentUser.user_metadata?.interests || '',
+                email: currentUser.email,
+                updated_at: new Date().toISOString()
+              }).then(({ error }) => {
+                if (error) console.error('Error syncing profile:', error);
+              });
+            }
+          });
+      }
+
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
       }

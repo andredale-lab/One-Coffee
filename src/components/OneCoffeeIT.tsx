@@ -40,37 +40,9 @@ export default function OneCoffeeIT() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
-      // Save session to local storage for multi-account support
-      if (session?.user) {
-        const storedSessions = JSON.parse(localStorage.getItem('one_coffee_sessions') || '{}');
-        storedSessions[session.user.id] = {
-          user: session.user,
-          session: session
-        };
-        localStorage.setItem('one_coffee_sessions', JSON.stringify(storedSessions));
-      }
 
-      if (currentUser) {
-        // Sync profile to public table if missing
-        supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', currentUser.id)
-          .single()
-          .then(({ data }) => {
-            if (!data) {
-               supabase.from('profiles').upsert({
-                id: currentUser.id,
-                full_name: currentUser.user_metadata?.full_name || '',
-                interests: currentUser.user_metadata?.interests || '',
-                email: currentUser.email,
-                updated_at: new Date().toISOString()
-              }).then(({ error }) => {
-                if (error) console.error('Error syncing profile:', error);
-              });
-            }
-          });
-      }
+
+
 
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
@@ -83,37 +55,9 @@ export default function OneCoffeeIT() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
-      // Save session to local storage for multi-account support
-      if (session?.user) {
-        const storedSessions = JSON.parse(localStorage.getItem('one_coffee_sessions') || '{}');
-        storedSessions[session.user.id] = {
-          user: session.user,
-          session: session
-        };
-        localStorage.setItem('one_coffee_sessions', JSON.stringify(storedSessions));
-      }
 
-      if (currentUser) {
-        // Sync profile to public table if missing
-        supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', currentUser.id)
-          .single()
-          .then(({ data }) => {
-            if (!data) {
-               supabase.from('profiles').upsert({
-                id: currentUser.id,
-                full_name: currentUser.user_metadata?.full_name || '',
-                interests: currentUser.user_metadata?.interests || '',
-                email: currentUser.email,
-                updated_at: new Date().toISOString()
-              }).then(({ error }) => {
-                if (error) console.error('Error syncing profile:', error);
-              });
-            }
-          });
-      }
+
+
 
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
