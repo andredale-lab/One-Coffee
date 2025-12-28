@@ -7,8 +7,8 @@ interface Profile {
   id: string;
   full_name: string;
   interests: string;
-  avatar_url: string | null;
-  email: string;
+  avatar_url?: string | null;
+  email?: string;
 }
 
 interface CommunityViewProps {
@@ -27,11 +27,11 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('id', user.id) // Don't show current user
-        .limit(50);
+      const { data, error } = await supabase 
+        .from('signups') 
+        .select('id, full_name, interests, email') 
+        .neq('email', user.email)
+        .order('created_at', { ascending: false });
 
       if (error) {
         // If table doesn't exist, we might get an error.
@@ -140,8 +140,9 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
                   </div>
 
                   <a
-                    href={`mailto:${profile.email}?subject=Caffè su One-Coffee?&body=Ciao ${profile.full_name.split(' ')[0]}, ti ho visto su One-Coffee e mi piacerebbe offrirti un caffè per parlare di...`}
-                    className="w-full flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 py-3 rounded-xl font-semibold hover:bg-amber-700 hover:text-white transition-all group-hover:scale-[1.02] active:scale-[0.98]"
+                    href={profile.email ? `mailto:${profile.email}?subject=Caffè su One-Coffee?&body=Ciao ${profile.full_name.split(' ')[0]}, ti ho visto su One-Coffee e mi piacerebbe offrirti un caffè per parlare di...` : '#'}
+                    className={`w-full flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 py-3 rounded-xl font-semibold transition-all group-hover:scale-[1.02] active:scale-[0.98] ${profile.email ? 'hover:bg-amber-700 hover:text-white' : 'opacity-50 cursor-not-allowed'}`}
+                    onClick={(e) => !profile.email && e.preventDefault()}
                   >
                     <Coffee className="w-4 h-4" />
                     <span>{t.invite}</span>
