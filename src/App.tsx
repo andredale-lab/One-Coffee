@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OneCoffeeIT from './components/OneCoffeeIT';
 import OneCoffeeEN from './components/OneCoffeeEN';
 import { Globe } from 'lucide-react';
+import { supabase } from './lib/supabase/client';
 
 function App() {
   const [language, setLanguage] = useState<'it' | 'en'>('it');
+
+  useEffect(() => {
+    const signOut = async () => {
+      await supabase.auth.signOut();
+    };
+    signOut();
+  }, []);
 
   return (
     <div>

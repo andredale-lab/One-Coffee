@@ -28,10 +28,10 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   const fetchProfiles = async () => {
     try {
       const { data, error } = await supabase 
-        .from('signups') 
+        .from('profiles') 
         .select('id, full_name, interests, email') 
         .neq('email', user.email)
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) {
         // If table doesn't exist, we might get an error.
