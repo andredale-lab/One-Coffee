@@ -7,13 +7,6 @@ import { supabase } from './lib/supabase/client';
 function App() {
   const [language, setLanguage] = useState<'it' | 'en'>('it');
 
-  useEffect(() => {
-    const signOut = async () => {
-      await supabase.auth.signOut();
-    };
-    signOut();
-  }, []);
-
   return (
     <div>
       <div className="fixed bottom-6 right-6 z-50">

@@ -24,7 +24,7 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.reload();
+    window.location.href = "/";
   };
 
   const t = {
