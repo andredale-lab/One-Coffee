@@ -22,11 +22,6 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
   const t = {
     IT: {
       logout: 'Esci',
@@ -66,7 +61,10 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
           </div>
 
           <button
-            onClick={handleLogout}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = "/";
+            }}
             className="w-full text-left flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-gray-700 hover:text-red-700 transition-colors"
           >
             <LogOut className="w-4 h-4" />
