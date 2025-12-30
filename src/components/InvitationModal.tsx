@@ -50,10 +50,7 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
 
   const selectedUser = receiver;
 
-  const handleSendInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const handleSendInvite = async () => {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -113,7 +110,7 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
               <span>{t.success}</span>
             </div>
           ) : (
-            <form onSubmit={handleSendInvite} className="space-y-4">
+            <div className="space-y-4">
               <div>
                 <textarea
                   required
@@ -137,22 +134,14 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
                 >
                   {t.cancel}
                 </button>
-                <button
-                  type="submit"
-                  disabled={loading || !message.trim()}
-                  className="flex-1 bg-amber-700 text-white py-3 px-4 rounded-xl font-semibold hover:bg-amber-800 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {loading ? (
-                    <span>{t.sending}</span>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>{t.send}</span>
-                    </>
-                  )}
-                </button>
+                <button 
+                   onClick={handleSendInvite}
+                   className="flex-1 bg-amber-700 text-white py-3 px-4 rounded-xl font-semibold hover:bg-amber-800 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                 > 
+                   Invia invito 
+                 </button> 
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>

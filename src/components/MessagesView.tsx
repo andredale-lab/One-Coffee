@@ -35,29 +35,20 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
   const fetchInvitations = async () => {
     setLoading(true);
     try {
-      // Fetch invitations received by the user
-      // We also need sender details. We can use a join if foreign keys are set up, 
-      // or we can fetch manually. Assuming we can join on 'profiles' via 'sender_id'.
-      // If Supabase foreign keys are correct:
-      // .select('*, sender:profiles!sender_id(*)')
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const { data: invitations, error } = await supabase 
+        .from('invitations') 
+        .select('*') 
+        .eq('receiver_id', session.user.id); 
       
-      const { data, error } = await supabase
-        .from('invitations')
-        .select(`
-          *,
-          sender:profiles!sender_id (
-            full_name,
-            avatar_url,
-            email
-          )
-        `)
-        .eq('receiver_id', user.id)
-        .order('created_at', { ascending: false });
+      console.log('INVITI RICEVUTI:', invitations);
 
       if (error) throw error;
 
-      // Type assertion or mapping if needed, but Supabase types are loose here
-      setInvitations(data as any || []);
+      setInvitations(invitations as any || []);
     } catch (error) {
       console.error('Error fetching invitations:', error);
     } finally {
