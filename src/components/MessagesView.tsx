@@ -116,12 +116,15 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
       .from('messages')
-      .select('*')
+      .select('id, sender_id, content, created_at')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
+    console.log('MESSAGES:', data);
+    console.log('ERROR:', error);
+
     if (!error && data) {
-      setMessages(data);
+      setMessages(data as any);
       scrollToBottom();
     }
   };
