@@ -112,6 +112,9 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     setMessage({ type: '', text: '' });
 
     try {
+      const { data: { user } } = await supabase.auth.getUser() 
+      console.log(user)
+
       const { data: { session } } = await supabase.auth.getSession(); 
  
       if (!session) { 
