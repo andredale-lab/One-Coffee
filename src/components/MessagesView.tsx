@@ -23,38 +23,24 @@ interface Invitation {
 }
 
 export default function MessagesView({ user, lang }: MessagesViewProps) {
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [invitations, setInvitations] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchInvitations();
-    }
-  }, [user]);
-
-  const fetchInvitations = async () => {
-    setLoading(true);
-    try {
+    const loadInvitations = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) return;
 
-      const { data: invitations, error } = await supabase 
-        .from('invitations') 
-        .select('*') 
-        .eq('receiver_id', session.user.id); 
-      
-      console.log('INVITI RICEVUTI:', invitations);
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('receiver_id', session.user.id);
 
-      if (error) throw error;
+      console.log('INVITI:', data, error);
+      if (!error) setInvitations(data ?? []);
+    };
 
-      setInvitations(invitations as any || []);
-    } catch (error) {
-      console.error('Error fetching invitations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadInvitations();
+  }, []);
 
   const handleStatusUpdate = async (id: string, newStatus: 'accepted' | 'rejected') => {
     try {
@@ -109,13 +95,7 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
           <p className="text-xl text-gray-600">{t.subtitle}</p>
         </div>
 
-        {loading ? (
-          <div className="space-y-4 animate-pulse">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white h-40 rounded-2xl shadow-sm" />
-            ))}
-          </div>
-        ) : invitations.length > 0 ? (
+        {invitations.length > 0 ? (
           <div className="space-y-4">
             {invitations.map((invitation) => (
               <div key={invitation.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
