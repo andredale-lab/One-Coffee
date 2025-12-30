@@ -112,8 +112,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     setMessage({ type: '', text: '' });
 
     try {
-      const { data: { user } } = await supabase.auth.getUser() 
-      console.log(user)
+      const { data: { user: authUser } } = await supabase.auth.getUser() 
+      console.log(authUser)
 
       const { data: { session } } = await supabase.auth.getSession(); 
  
@@ -122,7 +122,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
         return; 
       } 
  
-      const user = session.user; 
+      const sessionUser = session.user; 
  
       const { error } = await supabase 
         .from('profiles') 
@@ -130,7 +130,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
           full_name: formData.full_name, 
           interests: formData.interests 
         }) 
-        .eq('id', user.id); 
+        .eq('id', sessionUser.id); 
  
       if (error) { 
         console.error('UPDATE ERROR:', error); 
