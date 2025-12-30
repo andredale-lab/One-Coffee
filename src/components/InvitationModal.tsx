@@ -48,35 +48,38 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
     }
   }[lang];
 
-  const handleSend = async (e: React.FormEvent) => {
+  const selectedUser = receiver;
+
+  const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
-    try {
-      const { error: insertError } = await supabase
-        .from('invitations')
-        .insert({
-          sender_id: sender.id,
-          receiver_id: receiver.id,
-          message: message,
-          status: 'pending'
-        });
+    const { data: { session } } = await supabase.auth.getSession();
 
-      if (insertError) throw insertError;
-
-      setSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setSuccess(false);
-        setMessage('');
-      }, 2000);
-    } catch (err) {
-      console.error('Error sending invitation:', err);
-      setError(t.error);
-    } finally {
+    if (!session) {
+      console.error('Sessione mancante');
+      alert('Devi essere loggato per inviare un invito');
       setLoading(false);
+      return;
     }
+
+    const { error } = await supabase
+      .from('invitations')
+      .insert({
+        sender_id: session.user.id,
+        receiver_id: selectedUser.id,
+        message
+      });
+
+    console.log('INVITE ERROR:', error);
+
+    if (error) {
+      alert('Errore durante l’invio dell’invito');
+    } else {
+      alert('Invito inviato!');
+      onClose();
+    }
+    setLoading(false);
   };
 
   return (
@@ -110,7 +113,7 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
               <span>{t.success}</span>
             </div>
           ) : (
-            <form onSubmit={handleSend} className="space-y-4">
+            <form onSubmit={handleSendInvite} className="space-y-4">
               <div>
                 <textarea
                   required
