@@ -22,6 +22,27 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [invitations, setInvitations] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadInvitations = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('receiver_id', session.user.id);
+
+      console.log('INVITI RICEVUTI:', data, error);
+
+      if (!error && data) {
+        setInvitations(data);
+      }
+    };
+
+    loadInvitations();
+  }, []);
 
   useEffect(() => {
     if (!user) return;

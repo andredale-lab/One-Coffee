@@ -51,32 +51,60 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
   const selectedUser = receiver;
 
   const handleSendInvite = async () => {
+    setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
       console.error('Sessione mancante');
-      alert('Devi essere loggato per inviare un invito');
+      alert('Devi essere loggato per inviare un messaggio');
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase
-      .from('invitations')
-      .insert({
-        sender_id: session.user.id,
-        receiver_id: selectedUser.id,
-        message
-      });
+    try {
+      // 1. Check for existing conversation
+      const { data: existingConvs } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(user1_id.eq.${session.user.id},user2_id.eq.${selectedUser.id}),and(user1_id.eq.${selectedUser.id},user2_id.eq.${session.user.id})`)
+        .maybeSingle();
 
-    console.log('INVITE ERROR:', error);
+      let conversationId = existingConvs?.id;
 
-    if (error) {
-      alert('Errore durante l’invio dell’invito');
-    } else {
-      alert('Invito inviato!');
+      // 2. Create if not exists
+      if (!conversationId) {
+        const { data: newConv, error: createError } = await supabase
+          .from('conversations')
+          .insert({
+            user1_id: session.user.id,
+            user2_id: selectedUser.id
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        conversationId = newConv.id;
+      }
+
+      // 3. Send Message
+      const { error: msgError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: session.user.id,
+          content: message
+        });
+
+      if (msgError) throw msgError;
+
+      alert('Messaggio inviato! Vai alla sezione Messaggi per continuare la chat.');
       onClose();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Errore durante l\'invio del messaggio');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
