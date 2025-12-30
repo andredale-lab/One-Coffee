@@ -40,26 +40,29 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { interests: interests }
-      });
+      // 1️⃣ controlla sessione 
+      const { data: { session }, error: sessionError } = 
+        await supabase.auth.getSession(); 
+ 
+      console.log('SESSION:', session); 
+ 
+      if (!session) { 
+        console.error('Sessione mancante'); 
+        return; 
+      } 
+ 
+      // 2️⃣ user sicuro 
+      const user = session.user; 
+ 
+      // 3️⃣ update profilo 
+      const { error } = await supabase 
+        .from('profiles') 
+        .update({ interests }) 
+        .eq('id', user.id); 
+ 
+      console.log('UPDATE ERROR:', error);
 
       if (error) throw error;
-      
-      // Update public profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: user.user_metadata.full_name,
-          interests: interests,
-          email: user.email,
-          updated_at: new Date().toISOString()
-        });
-
-      if (profileError) {
-        console.error('Error updating public profile:', profileError);
-      }
       
       onClose();
       window.location.reload(); // Reload to reflect changes

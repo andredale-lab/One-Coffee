@@ -85,9 +85,12 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { avatar_url: data.publicUrl }
-      });
+      const { error: updateError } = await supabase 
+        .from('profiles') 
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user.id); 
+ 
+      console.log('UPDATE ERROR:', updateError);
 
       if (updateError) {
         throw updateError;
@@ -103,22 +106,33 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProfile = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: formData.full_name,
-          interests: formData.interests
-        }
-      });
-
-      if (error) throw error;
-
-
+      const { data: { session } } = await supabase.auth.getSession(); 
+ 
+      if (!session) { 
+        console.error('Sessione mancante'); 
+        return; 
+      } 
+ 
+      const user = session.user; 
+ 
+      const { error } = await supabase 
+        .from('profiles') 
+        .update({ 
+          full_name: formData.full_name, 
+          interests: formData.interests 
+        }) 
+        .eq('id', user.id); 
+ 
+      if (error) { 
+        console.error('UPDATE ERROR:', error); 
+        throw error;
+      } 
 
       setMessage({ type: 'success', text: t.success });
     } catch (error) {
@@ -165,7 +179,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
           <p className="mt-3 text-sm text-gray-500">{t.changePhoto}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSaveProfile} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{t.name}</label>
             <input
