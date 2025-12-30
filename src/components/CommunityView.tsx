@@ -22,31 +22,31 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    if (!user) return;
     fetchProfiles();
-  }, []);
+  }, [user]);
 
   const fetchProfiles = async () => {
-    try {
-      const { data, error } = await supabase 
-        .from('profiles') 
-        .select('id, full_name, interests, email') 
-        .neq('email', user.email)
-        .order('updated_at', { ascending: false });
-
-      if (error) {
-        // If table doesn't exist, we might get an error.
-        console.error('Error fetching profiles:', error);
-        return;
-      }
-
-      if (data) {
-        setProfiles(data);
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-    } finally {
-      setLoading(false);
+    if (!user?.id) {
+      console.warn('User not ready');
+      return;
     }
+
+    setLoading(true);
+
+    const { data, error } = await supabase 
+      .from('profiles') 
+      .select('*') 
+      .neq('id', user.id); 
+
+    console.log('PROFILES:', data); 
+    console.log('ERROR:', error);
+
+    if (!error && data) {
+      setProfiles(data);
+    }
+
+    setLoading(false);
   };
 
   const filteredProfiles = profiles.filter(profile => 
