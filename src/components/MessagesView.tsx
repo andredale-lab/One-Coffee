@@ -32,7 +32,15 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
 
       const { data, error } = await supabase
         .from('invitations')
-        .select('*')
+        .select(`
+          id,
+          message,
+          created_at,
+          sender:sender_id (
+            id,
+            full_name
+          )
+        `)
         .eq('receiver_id', session.user.id);
 
       console.log('INVITI:', data, error);
