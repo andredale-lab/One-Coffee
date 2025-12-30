@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Search, Mail, MapPin, Coffee, User as UserIcon } from 'lucide-react';
+import { Search, MapPin, Coffee, User as UserIcon } from 'lucide-react';
+import InvitationModal from './InvitationModal';
 
 interface Profile {
   id: string;
@@ -20,6 +21,7 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -139,14 +141,13 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
                     </p>
                   </div>
 
-                  <a
-                    href={profile.email ? `mailto:${profile.email}?subject=Caffè su One-Coffee?&body=Ciao ${profile.full_name.split(' ')[0]}, ti ho visto su One-Coffee e mi piacerebbe offrirti un caffè per parlare di...` : '#'}
-                    className={`w-full flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 py-3 rounded-xl font-semibold transition-all group-hover:scale-[1.02] active:scale-[0.98] ${profile.email ? 'hover:bg-amber-700 hover:text-white' : 'opacity-50 cursor-not-allowed'}`}
-                    onClick={(e) => !profile.email && e.preventDefault()}
+                  <button
+                    onClick={() => setSelectedProfile(profile)}
+                    className="w-full flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 py-3 rounded-xl font-semibold transition-all group-hover:scale-[1.02] active:scale-[0.98] hover:bg-amber-700 hover:text-white"
                   >
                     <Coffee className="w-4 h-4" />
                     <span>{t.invite}</span>
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
@@ -160,6 +161,14 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
           </div>
         )}
       </div>
+      
+      <InvitationModal
+        isOpen={!!selectedProfile}
+        onClose={() => setSelectedProfile(null)}
+        receiver={selectedProfile}
+        sender={user}
+        lang={lang}
+      />
     </div>
   );
 }
