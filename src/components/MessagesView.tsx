@@ -57,11 +57,19 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
     // Subscribe to new messages
     const channel = supabase
       .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const newMsg = payload.new as Message;
         if (selectedConversation && newMsg.conversation_id === selectedConversation.id) {
           setMessages(prev => [...prev, newMsg]);
           scrollToBottom();
+
+          // Mark as read immediately if it's from the other user and we are looking at it
+          if (newMsg.sender_id !== user.id) {
+            await supabase
+              .from('messages')
+              .update({ read: true })
+              .eq('id', newMsg.id);
+          }
         }
         fetchConversations(); // Refresh list to update last message/order
       })
