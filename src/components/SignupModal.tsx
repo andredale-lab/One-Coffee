@@ -14,8 +14,20 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
     full_name: '',
     email: '',
     password: '',
-    interests: ''
+    interests: '',
+    preferred_zone: ''
   });
+
+  const zones = [
+    'Città Studi',
+    'Bocconi / Navigli',
+    'Bicocca',
+    'Porta Garibaldi / Isola',
+    'Brera',
+    'Porta Romana',
+    'CityLife',
+    'Indifferente'
+  ];
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,6 +42,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
       email: 'Email',
       password: 'Password',
       interests: 'Di cosa ti occupi? / Interessi',
+      zone: 'Zona preferita',
       submit: 'Registrati',
       loginSubmit: 'Accedi',
       submitting: 'Registrazione...',
@@ -53,6 +66,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
       email: 'Email',
       password: 'Password',
       interests: 'Occupation / Interests',
+      zone: 'Preferred Zone',
       submit: 'Sign Up',
       loginSubmit: 'Log In',
       submitting: 'Signing up...',
@@ -108,7 +122,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
         setTimeout(() => {
           onClose();
           setStatus('idle');
-          setFormData({ full_name: '', email: '', password: '', interests: '' });
+          setFormData({ full_name: '', email: '', password: '', interests: '', preferred_zone: '' });
         }, 1500);
       } else {
         const { data: authData, error } = await supabase.auth.signUp({
@@ -118,6 +132,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
             data: {
               full_name: formData.full_name,
               interests: formData.interests,
+              preferred_zone: formData.preferred_zone
             }
           }
         });
@@ -130,6 +145,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
             id: authData.user.id,
             full_name: formData.full_name,
             interests: formData.interests,
+            preferred_zone: formData.preferred_zone,
             email: formData.email,
             updated_at: new Date().toISOString()
           });
@@ -139,7 +155,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
         setTimeout(() => {
           onClose();
           setStatus('idle');
-          setFormData({ full_name: '', email: '', password: '', interests: '' });
+          setFormData({ full_name: '', email: '', password: '', interests: '', preferred_zone: '' });
         }, 3000);
       }
     } catch (error: unknown) {
@@ -250,6 +266,23 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
                       value={formData.interests}
                       onChange={e => setFormData({...formData, interests: e.target.value})}
                     />
+                  </div>
+                )}
+
+                {!isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.zone}</label>
+                    <select
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white"
+                      value={formData.preferred_zone}
+                      onChange={e => setFormData({...formData, preferred_zone: e.target.value})}
+                      required
+                    >
+                      <option value="" disabled>Seleziona una zona</option>
+                      {zones.map(zone => (
+                        <option key={zone} value={zone}>{zone}</option>
+                      ))}
+                    </select>
                   </div>
                 )}
 

@@ -10,6 +10,7 @@ interface Profile {
   interests: string;
   avatar_url?: string | null;
   email?: string;
+  preferred_zone?: string;
 }
 
 interface CommunityViewProps {
@@ -152,7 +153,7 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
                         <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{profile.full_name}</h3>
                         <div className="flex items-center text-sm text-gray-500 mt-1">
                           <MapPin className="w-3 h-3 mr-1" />
-                          <span>Milano</span>
+                          <span>{profile.preferred_zone || "Milano"}</span>
                         </div>
                       </div>
                     </div>

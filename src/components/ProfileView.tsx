@@ -13,8 +13,20 @@ interface ProfileViewProps {
 export default function ProfileView({ user, lang }: ProfileViewProps) {
   const [formData, setFormData] = useState({
     full_name: '',
-    interests: ''
+    interests: '',
+    preferred_zone: ''
   });
+
+  const zones = [
+    'Città Studi',
+    'Bocconi / Navigli',
+    'Bicocca',
+    'Porta Garibaldi / Isola',
+    'Brera',
+    'Porta Romana',
+    'CityLife',
+    'Indifferente'
+  ];
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,7 +43,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     if (user) {
       setFormData({
         full_name: user.user_metadata?.full_name || '',
-        interests: user.user_metadata?.interests || ''
+        interests: user.user_metadata?.interests || '',
+        preferred_zone: user.user_metadata?.preferred_zone || ''
       });
       setAvatarUrl(user.user_metadata?.avatar_url || null);
     }
@@ -42,6 +55,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
       title: 'Il tuo Profilo',
       name: 'Nome Completo',
       interests: 'Di cosa ti occupi? / Interessi',
+      zone: 'Zona preferita',
       save: 'Salva Modifiche',
       saving: 'Salvataggio...',
       success: 'Profilo aggiornato con successo!',
@@ -56,6 +70,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
       title: 'Your Profile',
       name: 'Full Name',
       interests: 'Occupation / Interests',
+      zone: 'Preferred Zone',
       save: 'Save Changes',
       saving: 'Saving...',
       success: 'Profile updated successfully!',
@@ -79,13 +94,14 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, interests, avatar_url')
+        .select('full_name, interests, avatar_url, preferred_zone')
         .eq('id', user.id)
         .single();
       if (!error && data) {
         setFormData({
           full_name: data.full_name || '',
-          interests: data.interests || ''
+          interests: data.interests || '',
+          preferred_zone: data.preferred_zone || ''
         });
         setAvatarUrl(data.avatar_url || null);
       }
@@ -175,7 +191,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
         .from('profiles') 
         .update({ 
           full_name: formData.full_name, 
-          interests: formData.interests 
+          interests: formData.interests,
+          preferred_zone: formData.preferred_zone
         }) 
         .eq('id', sessionUser.id); 
  
@@ -310,6 +327,21 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none resize-none"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t.zone}</label>
+            <select
+              value={formData.preferred_zone}
+              onChange={(e) => setFormData({ ...formData, preferred_zone: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none bg-white"
+              required
+            >
+              <option value="" disabled>Seleziona una zona</option>
+              {zones.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
           </div>
 
           {message.text && (
