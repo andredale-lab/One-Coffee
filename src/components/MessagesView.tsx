@@ -111,16 +111,16 @@ export default function MessagesView({ user, lang, onMessagesRead }: MessagesVie
     if (!selectedConversation?.id) return;
 
     const channel = supabase
-      .channel(`messages-${selectedConversation.id}`)
+      .channel('messages')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${selectedConversation.id}`,
-        },
-        () => {
+          publication: 'supabase_realtime_messages_publication'
+        } as any,
+        (_payload) => {
           fetchMessages(selectedConversation.id);
         }
       )
