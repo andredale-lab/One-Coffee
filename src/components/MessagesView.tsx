@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Send, User as UserIcon, MessageCircle } from 'lucide-react';
+import { Send, User as UserIcon, MessageCircle, Trash2 } from 'lucide-react';
 
 interface MessagesViewProps {
   user: User;
@@ -203,6 +203,28 @@ export default function MessagesView({ user, lang, onMessagesRead }: MessagesVie
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Vuoi eliminare questo messaggio?')) return;
+
+    // Optimistic update
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      if (selectedConversation) {
+        fetchMessages(selectedConversation.id); // Revert on error
+      }
+      alert('Errore eliminazione messaggio');
+    }
+  };
+
   const t = {
     IT: {
       title: 'Chat',
@@ -313,7 +335,16 @@ export default function MessagesView({ user, lang, onMessagesRead }: MessagesVie
                           </span>
                         </div>
                       )}
-                      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group items-center`}>
+                        {isMe && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 mr-2"
+                            title="Elimina"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <div className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${
                           isMe 
                             ? 'bg-amber-600 text-white rounded-br-none' 
