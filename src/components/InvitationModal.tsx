@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '../lib/supabase/client';
-import { User } from '@supabase/supabase-js';
 import { X, Send } from 'lucide-react';
 
 interface Profile {
@@ -15,15 +14,14 @@ interface InvitationModalProps {
   isOpen: boolean;
   onClose: () => void;
   receiver: Profile | null;
-  sender: User;
   lang: 'IT' | 'EN';
 }
 
-export default function InvitationModal({ isOpen, onClose, receiver, sender, lang }: InvitationModalProps) {
+export default function InvitationModal({ isOpen, onClose, receiver, lang }: InvitationModalProps) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [error] = useState('');
+  const [success] = useState(false);
 
   if (!isOpen || !receiver) return null;
 
@@ -164,6 +162,7 @@ export default function InvitationModal({ isOpen, onClose, receiver, sender, lan
                 </button>
                 <button 
                    onClick={handleSendInvite}
+                   disabled={loading}
                    className="flex-1 bg-amber-700 text-white py-3 px-4 rounded-xl font-semibold hover:bg-amber-800 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                  > 
                    Invia invito 

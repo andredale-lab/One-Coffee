@@ -41,7 +41,7 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
 
     try {
       // 1️⃣ controlla sessione 
-      const { data: { session }, error: sessionError } = 
+      const { data: { session } } = 
         await supabase.auth.getSession(); 
  
       console.log('SESSION:', session); 

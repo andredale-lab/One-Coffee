@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { User as UserIcon, Save, Loader2, Camera } from 'lucide-react';
+import { User as UserIcon, Save, Loader2, Camera, X, Check } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../lib/cropImage';
 
 interface ProfileViewProps {
   user: User;
@@ -17,6 +19,13 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Crop state
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -61,23 +70,61 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
 
   const t = labels[lang];
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, interests, avatar_url')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setFormData({
+          full_name: data.full_name || '',
+          interests: data.interests || ''
+        });
+        setAvatarUrl(data.avatar_url || null);
+      }
+    };
+    load();
+  }, [user]);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setTempImageSrc(reader.result as string);
+        setIsCropping(true);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropSave = async () => {
     try {
       setUploading(true);
       setMessage({ type: '', text: '' });
+      
+      if (!tempImageSrc || !croppedAreaPixels) return;
 
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
-      }
+      const croppedImageBlob = await getCroppedImg(
+        tempImageSrc,
+        croppedAreaPixels
+      );
 
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      if (!croppedImageBlob) throw new Error('Could not crop image');
+
+      const fileName = `${user.id}-${Math.random()}.jpg`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, croppedImageBlob);
 
       if (uploadError) {
         throw uploadError;
@@ -90,14 +137,14 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
         .update({ avatar_url: data.publicUrl })
         .eq('id', user.id); 
  
-      console.log('UPDATE ERROR:', updateError);
-
       if (updateError) {
         throw updateError;
       }
 
       setAvatarUrl(data.publicUrl);
       setMessage({ type: 'success', text: t.uploadSuccess });
+      setIsCropping(false);
+      setTempImageSrc(null);
     } catch (error) {
       console.error('Error uploading avatar:', error);
       setMessage({ type: 'error', text: t.uploadError });
@@ -173,7 +220,7 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
               <input
                 type="file"
                 accept="image/*"
-                onChange={uploadAvatar}
+                onChange={handleFileSelect}
                 disabled={uploading}
                 className="hidden"
               />
@@ -181,6 +228,66 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
           </div>
           <p className="mt-3 text-sm text-gray-500">{t.changePhoto}</p>
         </div>
+
+        {isCropping && tempImageSrc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="bg-white rounded-2xl overflow-hidden max-w-lg w-full">
+              <div className="relative h-64 sm:h-80 w-full bg-gray-900">
+                <Cropper
+                  image={tempImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                  showGrid={true}
+                />
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Zoom</label>
+                  <input
+                    type="range"
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    aria-labelledby="Zoom"
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                  />
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setIsCropping(false);
+                      setTempImageSrc(null);
+                    }}
+                    className="flex-1 py-3 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <X className="w-5 h-5" />
+                    <span>Annulla</span>
+                  </button>
+                  <button
+                    onClick={handleCropSave}
+                    disabled={uploading}
+                    className="flex-1 py-3 px-4 bg-amber-700 text-white rounded-xl font-semibold hover:bg-amber-800 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Check className="w-5 h-5" />
+                    )}
+                    <span>Salva</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSaveProfile} className="space-y-6">
           <div>

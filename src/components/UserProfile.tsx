@@ -11,6 +11,7 @@ interface UserProfileProps {
 export default function UserProfile({ user, lang }: UserProfileProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.user_metadata?.avatar_url || null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -21,6 +22,19 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setAvatarUrl(data.avatar_url || null);
+        }
+      });
+  }, [user.id]);
 
   const t = {
     IT: {
@@ -34,7 +48,6 @@ export default function UserProfile({ user, lang }: UserProfileProps) {
   }[lang];
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-  const avatarUrl = user.user_metadata?.avatar_url;
 
   return (
     <div className="relative" ref={dropdownRef}>

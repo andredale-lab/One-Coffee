@@ -45,6 +45,9 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
   }, []);
 
   useEffect(() => {
+  }, [invitations]);
+
+  useEffect(() => {
     if (!user) return;
     fetchProfiles();
   }, [user]);
@@ -187,7 +190,6 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
         isOpen={!!selectedProfile}
         onClose={() => setSelectedProfile(null)}
         receiver={selectedProfile}
-        sender={user}
         lang={lang}
       />
     </div>
