@@ -107,6 +107,30 @@ export default function MessagesView({ user, lang, onMessagesRead }: MessagesVie
     }
   }, [selectedConversation]);
 
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+
+    const channel = supabase
+      .channel(`messages-${selectedConversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConversation.id}`,
+        },
+        () => {
+          fetchMessages(selectedConversation.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation?.id]);
+
   const scrollToBottom = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -210,12 +234,17 @@ export default function MessagesView({ user, lang, onMessagesRead }: MessagesVie
     setMessages(prev => prev.filter(m => m.id !== messageId));
 
     try {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('messages')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', messageId);
 
       if (error) throw error;
+      
+      // If no rows were deleted (likely due to RLS), revert the change
+      if (count === 0) {
+        throw new Error('Permission denied or message not found');
+      }
     } catch (error) {
       console.error('Error deleting message:', error);
       if (selectedConversation) {
