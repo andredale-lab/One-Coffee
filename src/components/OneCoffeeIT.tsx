@@ -28,6 +28,52 @@ export default function OneCoffeeIT() {
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages'>('home');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      // 1. Get my conversations
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      if (!conversations?.length) return;
+
+      const convIds = conversations.map(c => c.id);
+
+      // 2. Count unread messages
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .in('conversation_id', convIds)
+        .neq('sender_id', user.id)
+        .eq('read', false);
+
+      if (!error && count !== null) {
+        setUnreadCount(count);
+      }
+    };
+
+    fetchUnread();
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel('global_messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        fetchUnread();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   useEffect(() => {
     // Check if we need to open signup modal (e.g. after "Create new account" click)
@@ -378,9 +424,14 @@ export default function OneCoffeeIT() {
                   </button>
                   <button 
                     onClick={() => setCurrentView('messages')}
-                    className={`font-medium transition-colors ${currentView === 'messages' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
+                    className={`font-medium transition-colors relative ${currentView === 'messages' ? 'text-amber-700' : 'text-gray-600 hover:text-amber-700'}`}
                   >
                     Messaggi
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-[16px] flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </button>
                   <button 
                     onClick={() => setCurrentView('profile')}
