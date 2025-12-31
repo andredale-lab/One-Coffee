@@ -6,6 +6,7 @@ import { Send, User as UserIcon, MessageCircle } from 'lucide-react';
 interface MessagesViewProps {
   user: User;
   lang: 'IT' | 'EN';
+  onMessagesRead?: () => void;
 }
 
 interface Conversation {
@@ -28,13 +29,36 @@ interface Message {
   created_at: string;
 }
 
-export default function MessagesView({ user, lang }: MessagesViewProps) {
+export default function MessagesView({ user, lang, onMessagesRead }: MessagesViewProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const markMessagesAsRead = async (conversationId: string) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user || !conversationId) return;
+
+    await supabase
+      .from('messages')
+      .update({ read: true })
+      .eq('conversation_id', conversationId)
+      .neq('sender_id', user.id)
+      .eq('read', false);
+
+    onMessagesRead?.();
+  };
+
+  useEffect(() => {
+    if (selectedConversation?.id) {
+      markMessagesAsRead(selectedConversation.id);
+    }
+  }, [selectedConversation?.id]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -65,10 +89,7 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
 
           // Mark as read immediately if it's from the other user and we are looking at it
           if (newMsg.sender_id !== user.id) {
-            await supabase
-              .from('messages')
-              .update({ read: true })
-              .eq('id', newMsg.id);
+            await markMessagesAsRead(selectedConversation.id);
           }
         }
         fetchConversations(); // Refresh list to update last message/order
@@ -149,14 +170,6 @@ export default function MessagesView({ user, lang }: MessagesViewProps) {
     if (!error && data) {
       setMessages(data as any);
       scrollToBottom();
-
-      // Mark messages as read
-      await supabase
-        .from('messages')
-        .update({ read: true })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', user.id)
-        .eq('read', false);
     }
   };
 

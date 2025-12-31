@@ -30,32 +30,37 @@ export default function OneCoffeeIT() {
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages'>('home');
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const fetchUnread = async () => {
+    if (!user) return;
+    
+    // 1. Get my conversations
+    const { data: conversations } = await supabase
+      .from('conversations')
+      .select('id')
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+    
+    if (!conversations?.length) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const convIds = conversations.map(c => c.id);
+
+    // 2. Count unread messages
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .in('conversation_id', convIds)
+      .neq('sender_id', user.id)
+      .eq('read', false);
+
+    if (!error && count !== null) {
+      setUnreadCount(count);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
-
-    const fetchUnread = async () => {
-      // 1. Get my conversations
-      const { data: conversations } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-      
-      if (!conversations?.length) return;
-
-      const convIds = conversations.map(c => c.id);
-
-      // 2. Count unread messages
-      const { count, error } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .in('conversation_id', convIds)
-        .neq('sender_id', user.id)
-        .eq('read', false);
-
-      if (!error && count !== null) {
-        setUnreadCount(count);
-      }
-    };
 
     fetchUnread();
 
@@ -496,7 +501,7 @@ export default function OneCoffeeIT() {
       {currentView === 'home' && <HomeContent />}
       {currentView === 'profile' && user && <ProfileView user={user} lang="IT" />}
       {currentView === 'community' && user && <CommunityView user={user} lang="IT" />}
-      {currentView === 'messages' && user && <MessagesView user={user} lang="IT" />}
+      {currentView === 'messages' && user && <MessagesView user={user} lang="IT" onMessagesRead={fetchUnread} />}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
