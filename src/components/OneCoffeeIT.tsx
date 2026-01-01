@@ -11,7 +11,9 @@ import {
   ArrowRight,
   Mail,
   Linkedin,
-  ChevronDown
+  ChevronDown,
+  Menu,
+  X
 } from 'lucide-react';
 import SignupModal from './SignupModal';
 import UserProfile from './UserProfile';
@@ -24,6 +26,7 @@ import { User } from '@supabase/supabase-js';
 
 export default function OneCoffeeIT() {
   const [isContactsOpen, setIsContactsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -493,8 +496,83 @@ export default function OneCoffeeIT() {
                 </button>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-gray-700 p-2"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-2 pb-6 shadow-lg animate-in slide-in-from-top-2">
+            <div className="flex flex-col space-y-4">
+              {user ? (
+                <>
+                  <button 
+                    onClick={() => { setCurrentView('home'); setIsMobileMenuOpen(false); }}
+                    className={`text-left font-medium py-2 ${currentView === 'home' ? 'text-amber-700' : 'text-gray-600'}`}
+                  >
+                    Home
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentView('community'); setIsMobileMenuOpen(false); }}
+                    className={`text-left font-medium py-2 ${currentView === 'community' ? 'text-amber-700' : 'text-gray-600'}`}
+                  >
+                    Community
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentView('messages'); setIsMobileMenuOpen(false); }}
+                    className={`text-left font-medium py-2 flex items-center justify-between ${currentView === 'messages' ? 'text-amber-700' : 'text-gray-600'}`}
+                  >
+                    <span>Messaggi</span>
+                    {unreadCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentView('profile'); setIsMobileMenuOpen(false); }}
+                    className={`text-left font-medium py-2 ${currentView === 'profile' ? 'text-amber-700' : 'text-gray-600'}`}
+                  >
+                    Profilo
+                  </button>
+                  <div className="py-2 border-t border-gray-100 mt-2 pt-4">
+                    <UserProfile user={user} lang="IT" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <a href="#come-funziona" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 py-2">Come funziona</a>
+                  <a href="#perche" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 py-2">Perché</a>
+                  <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 py-2">FAQ</a>
+                  <button onClick={() => { setIsSignupOpen(true); setIsMobileMenuOpen(false); }} className="bg-amber-700 text-white px-6 py-2 rounded-full font-medium mt-2 w-full">
+                    Iscriviti
+                  </button>
+                </>
+              )}
+              
+              <div className="border-t border-gray-100 pt-4 mt-2">
+                 <p className="text-sm text-gray-400 mb-2">Contatti</p>
+                 <a href="mailto:contact@one-coffee.it" className="flex items-center space-x-2 text-gray-600 py-2">
+                    <Mail className="w-4 h-4" />
+                    <span>contact@one-coffee.it</span>
+                 </a>
+                 <a href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-gray-600 py-2">
+                    <Linkedin className="w-4 h-4" />
+                    <span>LinkedIn</span>
+                 </a>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content */}
