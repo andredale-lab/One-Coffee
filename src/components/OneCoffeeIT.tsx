@@ -395,7 +395,7 @@ export default function OneCoffeeIT() {
             </button>
           )}
 
-          <p className="text-amber-100 text-lg">Primi posti limitati. Solo Milano per ora.</p>
+          <p className="text-amber-100 text-lg">Iscriviti e allarga il tuo network</p>
         </div>
       </section>
     </>
