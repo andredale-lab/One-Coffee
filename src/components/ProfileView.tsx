@@ -14,7 +14,9 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
   const [formData, setFormData] = useState({
     full_name: '',
     interests: '',
-    preferred_zone: ''
+    preferred_zone: '',
+    availability_days: '',
+    availability_time: ''
   });
 
   const zones = [
@@ -44,7 +46,9 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
       setFormData({
         full_name: user.user_metadata?.full_name || '',
         interests: user.user_metadata?.interests || '',
-        preferred_zone: user.user_metadata?.preferred_zone || ''
+        preferred_zone: user.user_metadata?.preferred_zone || '',
+        availability_days: user.user_metadata?.availability_days || '',
+        availability_time: user.user_metadata?.availability_time || ''
       });
       setAvatarUrl(user.user_metadata?.avatar_url || null);
     }
@@ -55,6 +59,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
       title: 'Il tuo Profilo',
       name: 'Nome Completo',
       interests: 'Di cosa ti occupi? / Interessi',
+      daysLabel: 'Che giorni sei libero per un caffè?',
+      timeLabel: 'A che ora sei libero per un caffè?',
       zone: 'Zona preferita',
       save: 'Salva Modifiche',
       saving: 'Salvataggio...',
@@ -70,6 +76,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
       title: 'Your Profile',
       name: 'Full Name',
       interests: 'Occupation / Interests',
+      daysLabel: 'Which days are you free for a coffee?',
+      timeLabel: 'What time are you free for a coffee?',
       zone: 'Preferred Zone',
       save: 'Save Changes',
       saving: 'Saving...',
@@ -94,14 +102,16 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, interests, avatar_url, preferred_zone')
+        .select('full_name, interests, avatar_url, preferred_zone, availability_days, availability_time')
         .eq('id', user.id)
         .single();
       if (!error && data) {
         setFormData({
           full_name: data.full_name || '',
           interests: data.interests || '',
-          preferred_zone: data.preferred_zone || ''
+          preferred_zone: data.preferred_zone || '',
+          availability_days: data.availability_days || '',
+          availability_time: data.availability_time || ''
         });
         setAvatarUrl(data.avatar_url || null);
       }
@@ -192,7 +202,9 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
         .update({ 
           full_name: formData.full_name, 
           interests: formData.interests,
-          preferred_zone: formData.preferred_zone
+          preferred_zone: formData.preferred_zone,
+          availability_days: formData.availability_days,
+          availability_time: formData.availability_time
         }) 
         .eq('id', sessionUser.id); 
  
@@ -326,6 +338,28 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
               onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none resize-none"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t.daysLabel}</label>
+            <input
+              type="text"
+              value={formData.availability_days}
+              onChange={(e) => setFormData({ ...formData, availability_days: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+              placeholder={lang === 'IT' ? "Es. Lunedì, Mercoledì..." : "Ex. Monday, Wednesday..."}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t.timeLabel}</label>
+            <input
+              type="text"
+              value={formData.availability_time}
+              onChange={(e) => setFormData({ ...formData, availability_time: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+              placeholder={lang === 'IT' ? "Es. Pausa pranzo, dopo le 18..." : "Ex. Lunch break, after 6pm..."}
             />
           </div>
 

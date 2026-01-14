@@ -11,6 +11,8 @@ interface Profile {
   avatar_url?: string | null;
   email?: string;
   preferred_zone?: string;
+  availability_days?: string;
+  availability_time?: string;
 }
 
 interface CommunityViewProps {
@@ -165,6 +167,23 @@ export default function CommunityView({ user, lang }: CommunityViewProps) {
                       {profile.interests || "Nessun interesse specificato"}
                     </p>
                   </div>
+
+                  {(profile.availability_days || profile.availability_time) && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="bg-amber-50 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-amber-800 mb-1">Giorni</p>
+                        <p className="text-xs text-amber-900 line-clamp-1" title={profile.availability_days}>
+                          {profile.availability_days || "-"}
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-amber-800 mb-1">Orari</p>
+                        <p className="text-xs text-amber-900 line-clamp-1" title={profile.availability_time}>
+                          {profile.availability_time || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     onClick={() => setSelectedProfile(profile)}

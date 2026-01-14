@@ -11,6 +11,8 @@ interface ProfileSetupModalProps {
 
 export default function ProfileSetupModal({ isOpen, onClose, user, lang }: ProfileSetupModalProps) {
   const [interests, setInterests] = useState('');
+  const [availabilityDays, setAvailabilityDays] = useState('');
+  const [availabilityTime, setAvailabilityTime] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -21,6 +23,8 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
       title: 'Completa il tuo profilo',
       description: 'Per trovarti il match perfetto, abbiamo bisogno di sapere cosa studi e cosa ti interessa.',
       interestsLabel: 'Di cosa ti occupi? / Interessi',
+      daysLabel: 'Che giorni sei libero per un caffè?',
+      timeLabel: 'A che ora sei libero per un caffè?',
       submit: 'Salva e continua',
       submitting: 'Salvataggio...'
     },
@@ -28,6 +32,8 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
       title: 'Complete your profile',
       description: 'To find your perfect match, we need to know what you study and what you are interested in.',
       interestsLabel: 'Occupation / Interests',
+      daysLabel: 'Which days are you free for a coffee?',
+      timeLabel: 'What time are you free for a coffee?',
       submit: 'Save and continue',
       submitting: 'Saving...'
     }
@@ -57,7 +63,11 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
       // 3️⃣ update profilo 
       const { error } = await supabase 
         .from('profiles') 
-        .update({ interests }) 
+        .update({ 
+          interests,
+          availability_days: availabilityDays,
+          availability_time: availabilityTime
+        }) 
         .eq('id', user.id); 
  
       console.log('UPDATE ERROR:', error);
@@ -91,6 +101,30 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
                 value={interests}
                 onChange={e => setInterests(e.target.value)}
                 placeholder={lang === 'IT' ? "Es. Economia in Bocconi, startup, tennis..." : "Ex. Economics at Bocconi, startups, tennis..."}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.daysLabel}</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                value={availabilityDays}
+                onChange={e => setAvailabilityDays(e.target.value)}
+                placeholder={lang === 'IT' ? "Es. Lunedì, Mercoledì..." : "Ex. Monday, Wednesday..."}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.timeLabel}</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                value={availabilityTime}
+                onChange={e => setAvailabilityTime(e.target.value)}
+                placeholder={lang === 'IT' ? "Es. Pausa pranzo, dopo le 18..." : "Ex. Lunch break, after 6pm..."}
               />
             </div>
 
