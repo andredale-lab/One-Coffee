@@ -22,6 +22,9 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
   const [loading, setLoading] = useState(false);
   const [error] = useState('');
   const [success] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   if (!isOpen || !receiver) return null;
 
@@ -33,7 +36,13 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
       sending: 'Invio in corso...',
       success: 'Invito inviato con successo!',
       error: 'Errore durante l\'invio dell\'invito',
-      cancel: 'Annulla'
+      cancel: 'Annulla',
+      barsTitle: 'Scegli un bar vicino a te',
+      barsDescription: 'Ti mostriamo i bar vicino alla tua posizione. Apri la mappa, scegli un bar e proponilo nel messaggio.',
+      barsButton: 'Trova bar vicino a me',
+      barsOpenMaps: 'Apri la mappa dei bar vicini',
+      barsErrorUnsupported: 'Il tuo browser non supporta la geolocalizzazione.',
+      barsErrorDenied: 'Impossibile ottenere la posizione. Controlla i permessi di geolocalizzazione.'
     },
     EN: {
       title: 'Invite for a coffee',
@@ -42,11 +51,44 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
       sending: 'Sending...',
       success: 'Invite sent successfully!',
       error: 'Error sending invite',
-      cancel: 'Cancel'
+      cancel: 'Cancel',
+      barsTitle: 'Choose a bar near you',
+      barsDescription: 'We show bars near your location. Open the map, pick a bar and mention it in the message.',
+      barsButton: 'Find bars near me',
+      barsOpenMaps: 'Open nearby bars map',
+      barsErrorUnsupported: 'Your browser does not support geolocation.',
+      barsErrorDenied: 'Unable to get your location. Please check browser permissions.'
     }
   }[lang];
 
   const selectedUser = receiver;
+
+  const handleFindBarsNearMe = () => {
+    if (!navigator.geolocation) {
+      setGeoError(t.barsErrorUnsupported);
+      return;
+    }
+
+    setGeoLoading(true);
+    setGeoError('');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation({ lat: latitude, lng: longitude });
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError(t.barsErrorDenied);
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const mapsUrl = location
+    ? `https://www.google.com/maps/search/bar/@${location.lat},${location.lng},15z`
+    : 'https://www.google.com/maps/search/bar+vicino+a+me';
 
   const handleSendInvite = async () => {
     setLoading(true);
@@ -137,6 +179,34 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-700">{t.barsTitle}</p>
+                <p className="text-xs text-gray-500">{t.barsDescription}</p>
+                <div className="flex flex-col space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleFindBarsNearMe}
+                    disabled={geoLoading}
+                    className="w-full py-2 px-4 rounded-xl font-semibold text-white bg-amber-700 hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {geoLoading ? 'Caricamento posizione...' : t.barsButton}
+                  </button>
+                  {geoError && (
+                    <p className="text-xs text-red-600">{geoError}</p>
+                  )}
+                  {location && (
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 px-4 rounded-xl font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors text-center"
+                    >
+                      {t.barsOpenMaps}
+                    </a>
+                  )}
+                </div>
+              </div>
+
               <div>
                 <textarea
                   required

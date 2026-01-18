@@ -45,6 +45,17 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
     e.preventDefault();
     setLoading(true);
 
+    const parseList = (s: string) =>
+      s.split(",").map(x => x.trim()).filter(Boolean);
+
+    const toPgArrayLiteral = (values: string[]) =>
+      `{${values.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')}}`;
+
+    const availabilityDaysArray = parseList(availabilityDays);
+    const availabilityTimeArray = parseList(availabilityTime);
+    const availabilityDaysLiteral = toPgArrayLiteral(availabilityDaysArray);
+    const availabilityTimeLiteral = toPgArrayLiteral(availabilityTimeArray);
+
     try {
       // 1️⃣ controlla sessione 
       const { data: { session } } = 
@@ -65,8 +76,8 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
         .from('profiles') 
         .update({ 
           interests,
-          availability_days: availabilityDays,
-          availability_time: availabilityTime
+          availability_days: availabilityDaysLiteral,
+          availability_time: availabilityTimeLiteral
         }) 
         .eq('id', user.id); 
  

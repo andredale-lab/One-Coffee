@@ -184,6 +184,17 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
+    const parseList = (s: string) =>
+      s.split(",").map(x => x.trim()).filter(Boolean);
+
+    const toPgArrayLiteral = (values: string[]) =>
+      `{${values.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')}}`;
+
+    const availabilityDaysArray = parseList(formData.availability_days);
+    const availabilityTimeArray = parseList(formData.availability_time);
+    const availabilityDaysLiteral = toPgArrayLiteral(availabilityDaysArray);
+    const availabilityTimeLiteral = toPgArrayLiteral(availabilityTimeArray);
+
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser() 
       console.log(authUser)
@@ -203,8 +214,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
           full_name: formData.full_name, 
           interests: formData.interests,
           preferred_zone: formData.preferred_zone,
-          availability_days: formData.availability_days,
-          availability_time: formData.availability_time
+          availability_days: availabilityDaysLiteral,
+          availability_time: availabilityTimeLiteral
         }) 
         .eq('id', sessionUser.id); 
  
