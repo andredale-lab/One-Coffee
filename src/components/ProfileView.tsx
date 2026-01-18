@@ -41,14 +41,17 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
   const [isCropping, setIsCropping] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
+  const arrayToInput = (v: unknown) =>
+    Array.isArray(v) ? v.join(', ') : (v ?? '');
+
   useEffect(() => {
     if (user) {
       setFormData({
         full_name: user.user_metadata?.full_name || '',
         interests: user.user_metadata?.interests || '',
         preferred_zone: user.user_metadata?.preferred_zone || '',
-        availability_days: user.user_metadata?.availability_days || '',
-        availability_time: user.user_metadata?.availability_time || ''
+        availability_days: arrayToInput(user.user_metadata?.availability_days),
+        availability_time: arrayToInput(user.user_metadata?.availability_time)
       });
       setAvatarUrl(user.user_metadata?.avatar_url || null);
     }
@@ -110,8 +113,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
           full_name: data.full_name || '',
           interests: data.interests || '',
           preferred_zone: data.preferred_zone || '',
-          availability_days: data.availability_days || '',
-          availability_time: data.availability_time || ''
+          availability_days: arrayToInput(data.availability_days),
+          availability_time: arrayToInput(data.availability_time)
         });
         setAvatarUrl(data.avatar_url || null);
       }
