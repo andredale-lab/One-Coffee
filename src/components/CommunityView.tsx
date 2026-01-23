@@ -173,28 +173,21 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const fetchTables = async () => {
     setLoading(true);
 
-    async function loadCoffeeTables() { 
-      const { data, error } = await supabase 
-        .from('coffee_tables') 
-        .select('*'); 
-    
-      console.log('data', data); 
-      console.log('error', error); 
-    } 
-    
-    loadCoffeeTables();
-
     try {
-      const baseSelect = 'id,title,created_at'; 
- 
       const { data, error } = await supabase 
         .from('coffee_tables') 
-        .select(baseSelect); 
+        .select(`
+          *,
+          profiles:host_id (
+            full_name,
+            avatar_url
+          )
+        `); 
 
       if (data) {
         setTables(data as any);
       }
-      console.log('Main fetch error:', error);
+      if (error) console.log('Fetch tables error:', error);
     } catch (err) {
       console.warn('Error fetching tables:', err);
     }
@@ -647,12 +640,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                       if (confirm('Sei sicuro di voler eliminare il tavolo?')) {
                         try {
                           if (myTable?.id) {
-                            const { error } = await supabase
-                              .from('coffee_tables')
-                              .delete()
-                              .eq('id', myTable.id);
-                              
-                            if (error) throw error;
+                            await deleteTable(myTable.id);
                           }
                           
                           setMyTable(null);
