@@ -172,6 +172,23 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
   const fetchTables = async () => {
     setLoading(true);
+
+    const { data: debugData, error: debugError } = await supabase 
+      .from('coffee_tables') 
+      .select(` 
+        id, 
+        title, 
+        description, 
+        created_at, 
+        profiles ( 
+          username, 
+          avatar_url 
+        ) 
+      `) 
+    
+    console.log('TABLES:', debugData) 
+    console.log('ERROR:', debugError)
+
     try {
       const { data, error } = await supabase
         .from('coffee_tables')
