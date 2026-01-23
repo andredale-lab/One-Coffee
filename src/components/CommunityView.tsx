@@ -173,32 +173,28 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const fetchTables = async () => {
     setLoading(true);
 
-    const { data: debugData, error: debugError } = await supabase 
-      .from('coffee_tables') 
-      .select(` 
-        id, 
-        title, 
-        description, 
-        created_at, 
-        profiles ( 
-          username, 
-          avatar_url 
-        ) 
-      `) 
+    async function loadCoffeeTables() { 
+      const { data, error } = await supabase 
+        .from('coffee_tables') 
+        .select('*'); 
     
-    console.log('TABLES:', debugData) 
-    console.log('ERROR:', debugError)
+      console.log('data', data); 
+      console.log('error', error); 
+    } 
+    
+    loadCoffeeTables();
 
     try {
-      const { data, error } = await supabase
-        .from('coffee_tables')
-        .select('*, profiles:host_id(full_name, avatar_url)')
-        .neq('host_id', user.id)
-        .gte('coffee_date', new Date().toISOString().split('T')[0]);
+      const baseSelect = 'id,title,created_at'; 
+ 
+      const { data, error } = await supabase 
+        .from('coffee_tables') 
+        .select(baseSelect); 
 
       if (data) {
-        setTables(data);
+        setTables(data as any);
       }
+      console.log('Main fetch error:', error);
     } catch (err) {
       console.warn('Error fetching tables:', err);
     }
