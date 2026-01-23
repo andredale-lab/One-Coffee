@@ -150,11 +150,16 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
   const fetchMyTable = async () => {
     try {
+      console.log('Fetching my table for user:', user.id);
       const { data, error } = await supabase
         .from('coffee_tables')
         .select('*')
         .eq('host_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
+
+      console.log('My table fetch result:', data, error);
 
       if (data) {
         setMyTable({
@@ -164,6 +169,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
           date: data.coffee_date,
           time: data.coffee_time
         });
+      } else {
+        setMyTable(null);
       }
     } catch (err) {
       console.warn('Error fetching my table:', err);
