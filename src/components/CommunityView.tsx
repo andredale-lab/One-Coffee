@@ -178,7 +178,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
         .from('coffee_tables') 
         .select(`
           *,
-          profiles:host_id (
+          profiles:profiles!coffee_tables_host_id_fkey (
             full_name,
             avatar_url
           )
