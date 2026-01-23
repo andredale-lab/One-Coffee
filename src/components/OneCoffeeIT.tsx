@@ -283,7 +283,18 @@ export default function OneCoffeeIT() {
           </div>
 
           <div className="text-center mt-12">
-            <a href="https://www.google.it/maps/search/milano+caff%C3%A8/@45.4669586,9.1801269,13z/data=!3m1!4b1?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoKLDEwMDc5MjA2OUgBUAM%3D" target="_blank" rel="noopener noreferrer" className="bg-amber-700 text-white px-10 py-4 rounded-full font-semibold text-lg hover:bg-amber-800 transition-all hover:scale-105 shadow-lg flex items-center justify-center space-x-2 mx-auto">
+            <a 
+              href={user ? "https://www.google.it/maps/search/milano+caff%C3%A8/@45.4669586,9.1801269,13z/data=!3m1!4b1?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoKLDEwMDc5MjA2OUgBUAM%3D" : "#"} 
+              target={user ? "_blank" : undefined} 
+              rel={user ? "noopener noreferrer" : undefined} 
+              onClick={(e) => {
+                if (!user) {
+                  e.preventDefault();
+                  setIsSignupOpen(true);
+                }
+              }}
+              className="bg-amber-700 text-white px-10 py-4 rounded-full font-semibold text-lg hover:bg-amber-800 transition-all hover:scale-105 shadow-lg flex items-center justify-center space-x-2 mx-auto"
+            >
               <span>Scopri i prossimi caffè</span>
               <Coffee className="w-5 h-5" />
             </a>
@@ -578,7 +589,7 @@ export default function OneCoffeeIT() {
       {/* Main Content */}
       {currentView === 'home' && <HomeContent />}
       {currentView === 'profile' && user && <ProfileView user={user} lang="IT" />}
-      {currentView === 'community' && user && <CommunityView user={user} lang="IT" />}
+      {currentView === 'community' && user && <CommunityView user={user} lang="IT" onBack={() => setCurrentView('home')} />}
       {currentView === 'messages' && user && <MessagesView user={user} lang="IT" onMessagesRead={fetchUnread} />}
 
       {/* Footer */}
