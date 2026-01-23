@@ -225,6 +225,29 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const hourOptions = Array.from({ length: 17 }, (_, i) => (i + 6).toString().padStart(2, '0')); // 06 to 22
   const minuteOptions = ['00', '15', '30', '45'];
 
+  const deleteTable = async (tableId: string) => {
+    console.log("DELETING TABLE ID:", tableId);
+
+    const { error } = await supabase
+      .from("coffee_tables")
+      .delete()
+      .eq("id", tableId);
+
+    if (error) {
+      console.log("Delete error:", error);
+      return;
+    }
+
+    // qui chiudi la modale / refresh lista
+    setMyTable(null);
+    setCoffeeBar('');
+    setCoffeeTitle('');
+    setCoffeeDate('');
+    setCoffeeTime('');
+    setShowCreateCoffeeModal(false);
+    fetchTables(); // Refresh list
+  };
+
   const handleOpenMaps = () => {
     setShowMapPicker(true);
   };
