@@ -25,6 +25,7 @@ interface CoffeeTable {
   coffee_time: string;
   profiles?: {
     full_name: string;
+    username?: string;
     avatar_url?: string | null;
   };
   table_participants?: {
@@ -181,11 +182,16 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       const { data, error } = await supabase 
         .from('coffee_tables') 
         .select(` 
-          id, title, description, created_at, created_by, 
+          id, 
+          title, 
+          description, 
+          created_at, 
+          created_by, 
           profiles:profiles!coffee_tables_created_by_fkey ( 
-            username, avatar_url 
+            full_name, 
+            avatar_url 
           ) 
-        `); 
+        `);
       
       console.log("DEBUG QUERY RESULT:", data, error);
       console.log("---------------------------");
