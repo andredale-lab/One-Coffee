@@ -27,6 +27,13 @@ interface CoffeeTable {
     full_name: string;
     avatar_url?: string | null;
   };
+  table_participants?: {
+    user_id: string;
+    profiles: {
+      full_name: string;
+      avatar_url?: string | null;
+    };
+  }[];
 }
 
 interface CommunityViewProps {
@@ -61,16 +68,40 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
   const handleJoinTable = async (table: CoffeeTable) => {
     if (!user) return;
+
+    // Check if already joined
+    const isAlreadyJoined = table.table_participants?.some(p => p.user_id === user.id);
+    if (isAlreadyJoined) {
+      alert(lang === 'IT' ? 'Sei già nel tavolo!' : 'You are already in this table!');
+      return;
+    }
     
     // Confirm action
-    if (!window.confirm(lang === 'IT' ? 'Vuoi inviare una richiesta per unirti a questo tavolo?' : 'Do you want to send a request to join this table?')) {
+    if (!window.confirm(lang === 'IT' ? 'Vuoi unirti a questo tavolo?' : 'Do you want to join this table?')) {
       return;
     }
 
     setJoiningTableId(table.id);
 
     try {
-      // 1. Check for existing conversation
+      // 1. Insert into table_participants
+      const { error: joinError } = await supabase
+        .from('table_participants')
+        .insert({
+          table_id: table.id,
+          user_id: user.id
+        });
+
+      if (joinError) {
+        if (joinError.code === '23505') {
+          alert(lang === 'IT' ? 'Sei già nel tavolo!' : 'You are already in this table!');
+        } else {
+          throw joinError;
+        }
+        return;
+      }
+
+      // 2. Check for existing conversation (to send notification message)
       const { data: existingConvs } = await supabase
         .from('conversations')
         .select('id')
@@ -79,7 +110,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
       let conversationId = existingConvs?.id;
 
-      // 2. Create if not exists
+      // 3. Create if not exists
       if (!conversationId) {
         const { data: newConv, error: createError } = await supabase
           .from('conversations')
@@ -94,10 +125,10 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
         conversationId = newConv.id;
       }
 
-      // 3. Send Message
+      // 4. Send Message
       const message = lang === 'IT' 
-        ? `Ciao! Ho visto il tuo tavolo al ${table.bar_name} per il ${table.coffee_date} alle ${table.coffee_time}. Posso unirmi?`
-        : `Hi! I saw your table at ${table.bar_name} for ${table.coffee_date} at ${table.coffee_time}. Can I join?`;
+        ? `Ciao! Mi sono unito al tuo tavolo al ${table.bar_name} per il ${table.coffee_date} alle ${table.coffee_time}.`
+        : `Hi! I joined your table at ${table.bar_name} for ${table.coffee_date} at ${table.coffee_time}.`;
 
       const { error: msgError } = await supabase
         .from('messages')
@@ -107,13 +138,14 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
           content: message
         });
 
-      if (msgError) throw msgError;
+      if (msgError) console.error('Error sending join message:', msgError); // Non bloccante per il join
 
-      alert(lang === 'IT' ? 'Richiesta inviata! Controlla i messaggi.' : 'Request sent! Check your messages.');
+      await fetchTables(); // Refresh UI
+      alert(lang === 'IT' ? 'Ti sei unito al tavolo!' : 'You joined the table!');
       
     } catch (error) {
       console.error('Error joining table:', error);
-      alert(lang === 'IT' ? 'Errore durante l\'invio della richiesta' : 'Error sending request');
+      alert(lang === 'IT' ? 'Errore durante l\'unione al tavolo' : 'Error joining table');
     } finally {
       setJoiningTableId(null);
     }
@@ -179,26 +211,30 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
   const fetchTables = async () => {
     setLoading(true);
-
     try {
-      const { data, error } = await supabase 
-        .from('coffee_tables') 
+      const { data, error } = await supabase
+        .from('coffee_tables')
         .select(`
           *,
           profiles:profiles!coffee_tables_host_id_fkey (
             full_name,
             avatar_url
+          ),
+          table_participants (
+            user_id,
+            profiles ( full_name, avatar_url )
           )
-        `); 
+        `);
 
-      if (data) {
-        setTables(data as any);
-      }
-      if (error) console.log('Fetch tables error:', error);
+      console.log('FETCH TABLES raw', { data, error });
+
+      if (error) console.error('fetchTables error:', error);
+      if (data) setTables(data as any);
     } catch (err) {
       console.warn('Error fetching tables:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchProfiles = async () => {
@@ -523,17 +559,61 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         </div>
                       </div>
 
+                      {user?.id === table.host_id && table.table_participants && table.table_participants.length > 0 && (
+                        <div className="pt-3 border-t border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+                            {lang === 'IT' ? 'Partecipanti' : 'Participants'}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {table.table_participants.map((participant) => (
+                              <div key={participant.user_id} className="flex items-center space-x-2 bg-gray-50 rounded-full pr-3 pl-1 py-1 border border-gray-100">
+                                <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                                  {participant.profiles.avatar_url ? (
+                                    <img 
+                                      src={participant.profiles.avatar_url} 
+                                      alt={participant.profiles.full_name} 
+                                      className="w-full h-full object-cover" 
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs font-bold">
+                                      {participant.profiles.full_name.charAt(0)}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-xs font-medium text-gray-700 max-w-[100px] truncate">
+                                  {participant.profiles.full_name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <button
                         onClick={() => handleJoinTable(table)}
-                        disabled={joiningTableId === table.id}
-                        className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-3 rounded-xl font-semibold transition-all hover:bg-amber-700 shadow-lg shadow-amber-200/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={joiningTableId === table.id || table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id}
+                        className={`w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold transition-all shadow-lg ${
+                          table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id
+                            ? 'bg-green-50 text-green-700 border border-green-200 shadow-none cursor-default'
+                            : 'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-200/50'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {joiningTableId === table.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id ? (
+                          <UserIcon className="w-4 h-4" />
                         ) : (
                           <Coffee className="w-4 h-4" />
                         )}
-                        <span>{joiningTableId === table.id ? (lang === 'IT' ? 'Invio...' : 'Sending...') : 'Unisciti'}</span>
+                        <span>
+                          {joiningTableId === table.id 
+                            ? (lang === 'IT' ? 'Invio...' : 'Sending...') 
+                            : user?.id === table.host_id
+                              ? (lang === 'IT' ? 'Tuo tavolo' : 'Your table')
+                              : table.table_participants?.some(p => p.user_id === user?.id)
+                                ? (lang === 'IT' ? 'Sei già nel tavolo' : 'You joined')
+                                : (lang === 'IT' ? 'Unisciti' : 'Join')}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -706,16 +786,17 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
                     const [year, month, day] = coffeeDate.split('-').map(Number);
                     const selectedDate = new Date(year, month - 1, day);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
+                    const [selectedHours, selectedMinutes] = coffeeTime.split(':').map(Number);
+                    selectedDate.setHours(selectedHours, selectedMinutes);
 
-                    if (selectedDate < today) {
-                      alert(t.errorPastDate);
+                    const now = new Date();
+
+                    if (selectedDate < now) {
+                      alert(lang === 'IT' ? 'Non puoi creare un tavolo nel passato.' : 'You cannot create a table in the past.');
                       return;
                     }
 
-                    const [hours] = coffeeTime.split(':').map(Number);
-                    if (hours >= 23 || hours < 6) {
+                    if (selectedHours >= 23 || selectedHours < 6) {
                       alert(t.errorInvalidTime);
                       return;
                     }

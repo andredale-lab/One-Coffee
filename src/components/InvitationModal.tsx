@@ -179,34 +179,6 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-gray-700">{t.barsTitle}</p>
-                <p className="text-xs text-gray-500">{t.barsDescription}</p>
-                <div className="flex flex-col space-y-2">
-                  <button
-                    type="button"
-                    onClick={handleFindBarsNearMe}
-                    disabled={geoLoading}
-                    className="w-full py-2 px-4 rounded-xl font-semibold text-white bg-amber-700 hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {geoLoading ? 'Caricamento posizione...' : t.barsButton}
-                  </button>
-                  {geoError && (
-                    <p className="text-xs text-red-600">{geoError}</p>
-                  )}
-                  {location && (
-                    <a
-                      href={mapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-2 px-4 rounded-xl font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors text-center"
-                    >
-                      {t.barsOpenMaps}
-                    </a>
-                  )}
-                </div>
-              </div>
-
               <div>
                 <textarea
                   required
