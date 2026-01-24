@@ -175,6 +175,25 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   }, [invitations]);
 
   useEffect(() => {
+    // DEBUG QUERY REQUESTED BY USER
+    const runDebugQuery = async () => {
+      console.log("--- RUNNING DEBUG QUERY ---");
+      const { data, error } = await supabase 
+        .from('coffee_tables') 
+        .select(` 
+          id, title, description, created_at, created_by, 
+          profiles:profiles!coffee_tables_created_by_fkey ( 
+            username, avatar_url 
+          ) 
+        `); 
+      
+      console.log("DEBUG QUERY RESULT:", data, error);
+      console.log("---------------------------");
+    };
+    runDebugQuery();
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     fetchProfiles();
     fetchMyTable();
