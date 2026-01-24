@@ -23,6 +23,7 @@ interface CoffeeTable {
   bar_name: string;
   coffee_date: string;
   coffee_time: string;
+  max_participants: number;
   profiles?: {
     full_name: string;
     username?: string;
@@ -52,13 +53,14 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const [showTableModal, setShowTableModal] = useState(false);
   const [showCreateCoffeeModal, setShowCreateCoffeeModal] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [myTable, setMyTable] = useState<{id?: string, bar: string, title: string, date: string, time: string} | null>(null);
+  const [myTable, setMyTable] = useState<{id?: string, bar: string, title: string, date: string, time: string, max_participants: number} | null>(null);
   const [tables, setTables] = useState<CoffeeTable[]>([]);
   const [viewMode, setViewMode] = useState<'profiles' | 'tables'>('profiles');
   const [coffeeBar, setCoffeeBar] = useState('');
   const [coffeeTitle, setCoffeeTitle] = useState('');
   const [coffeeDate, setCoffeeDate] = useState('');
   const [coffeeTime, setCoffeeTime] = useState('');
+  const [maxParticipants, setMaxParticipants] = useState(4);
   const [joiningTableId, setJoiningTableId] = useState<string | null>(null);
 
   const formatList = (val: any) => {
@@ -224,7 +226,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
           bar: data.bar_name,
           title: data.title,
           date: data.coffee_date,
-          time: data.coffee_time
+          time: data.coffee_time,
+          max_participants: data.max_participants || 4
         });
       } else {
         setMyTable(null);
@@ -312,6 +315,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
     setCoffeeTitle('');
     setCoffeeDate('');
     setCoffeeTime('');
+    setMaxParticipants(4);
     setShowCreateCoffeeModal(false);
     fetchTables(); // Refresh list
   };
@@ -349,7 +353,9 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       viewProfiles: 'Vedi profili',
       viewTables: 'Trova caffè',
       noTables: 'Nessun tavolo disponibile al momento.',
-      emptyTables: 'Non ci sono tavoli attivi. Creane uno tu!'
+      emptyTables: 'Non ci sono tavoli attivi. Creane uno tu!',
+      participants: 'Partecipanti',
+      maxParticipantsLabel: 'Numero massimo di persone (incluso te)'
     },
     EN: {
       title: 'Community',
@@ -379,7 +385,9 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       viewProfiles: 'View profiles',
       viewTables: 'Find coffee',
       noTables: 'No tables available at the moment.',
-      emptyTables: 'There are no active tables. Create one!'
+      emptyTables: 'There are no active tables. Create one!',
+      participants: 'Participants',
+      maxParticipantsLabel: 'Maximum number of people (including you)'
     }
   }[lang];
 
@@ -411,6 +419,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                   setCoffeeTitle(myTable.title);
                   setCoffeeDate(myTable.date);
                   setCoffeeTime(myTable.time);
+                  setMaxParticipants(myTable.max_participants || 4);
                   setShowCreateCoffeeModal(true);
                 }}
                 className="flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 border-[3px] border-amber-600 px-6 py-3 rounded-xl font-semibold hover:bg-amber-100 transition-colors shadow-sm"
@@ -581,13 +590,17 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                             <Clock className="w-4 h-4 mr-1 text-amber-600" />
                             <span>{table.coffee_time}</span>
                           </div>
+                          <div className="flex items-center" title={t.participants}>
+                            <UserIcon className="w-4 h-4 mr-1 text-amber-600" />
+                            <span>{(table.table_participants?.length || 0) + 1}/{table.max_participants || 4}</span>
+                          </div>
                         </div>
                       </div>
 
-                      {user?.id === table.host_id && table.table_participants && table.table_participants.length > 0 && (
+                      {table.table_participants && table.table_participants.length > 0 && (
                         <div className="pt-3 border-t border-gray-100">
                           <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                            {lang === 'IT' ? 'Partecipanti' : 'Participants'}
+                            {t.participants}
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {table.table_participants.map((participant) => (
@@ -616,17 +629,26 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
                       <button
                         onClick={() => handleJoinTable(table)}
-                        disabled={joiningTableId === table.id || table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id}
+                        disabled={
+                          joiningTableId === table.id || 
+                          table.table_participants?.some(p => p.user_id === user?.id) || 
+                          user?.id === table.host_id ||
+                          ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
+                        }
                         className={`w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold transition-all shadow-lg ${
                           table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id
                             ? 'bg-green-50 text-green-700 border border-green-200 shadow-none cursor-default'
-                            : 'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-200/50'
+                            : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                              : 'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-200/50'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {joiningTableId === table.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id ? (
                           <UserIcon className="w-4 h-4" />
+                        ) : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4)) ? (
+                          <X className="w-4 h-4" />
                         ) : (
                           <Coffee className="w-4 h-4" />
                         )}
@@ -637,7 +659,9 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                               ? (lang === 'IT' ? 'Tuo tavolo' : 'Your table')
                               : table.table_participants?.some(p => p.user_id === user?.id)
                                 ? (lang === 'IT' ? 'Sei già nel tavolo' : 'You joined')
-                                : (lang === 'IT' ? 'Unisciti' : 'Join')}
+                                : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
+                                  ? (lang === 'IT' ? 'Tavolo pieno' : 'Table full')
+                                  : (lang === 'IT' ? 'Unisciti' : 'Join')}
                         </span>
                       </button>
                     </div>
@@ -768,6 +792,25 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.maxParticipantsLabel}</label>
+                <div className="flex gap-2">
+                  {[2, 3, 4, 5, 6].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setMaxParticipants(num)}
+                      className={`flex-1 py-3 rounded-xl font-medium border transition-all ${
+                        maxParticipants === num
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-md scale-105'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:bg-amber-50'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex space-x-3 pt-4">
                 {myTable ? (
                   <button
@@ -832,7 +875,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         title: coffeeTitle,
                         bar_name: coffeeBar,
                         coffee_date: coffeeDate,
-                        coffee_time: coffeeTime
+                        coffee_time: coffeeTime,
+                        max_participants: maxParticipants
                       };
 
                       let data, error;
@@ -866,7 +910,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         bar: data.bar_name,
                         title: data.title,
                         date: data.coffee_date,
-                        time: data.coffee_time
+                        time: data.coffee_time,
+                        max_participants: data.max_participants
                       });
                       
                       setShowCreateCoffeeModal(false);
@@ -874,6 +919,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                       setCoffeeTitle('');
                       setCoffeeDate('');
                       setCoffeeTime('');
+                      setMaxParticipants(4);
                       fetchTables(); // Refresh list to show the new/updated table
                     } catch (err) {
                       console.error('Error saving table:', err);
