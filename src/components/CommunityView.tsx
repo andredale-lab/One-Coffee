@@ -18,7 +18,7 @@ interface Profile {
 
 interface CoffeeTable {
   id: string;
-  host_id: string;
+  created_by: string;
   title: string;
   bar_name: string;
   coffee_date: string;
@@ -108,7 +108,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       const { data: existingConvs } = await supabase
         .from('conversations')
         .select('id')
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${table.host_id}),and(user1_id.eq.${table.host_id},user2_id.eq.${user.id})`)
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${table.created_by}),and(user1_id.eq.${table.created_by},user2_id.eq.${user.id})`)
         .maybeSingle();
 
       let conversationId = existingConvs?.id;
@@ -119,7 +119,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
           .from('conversations')
           .insert({
             user1_id: user.id,
-            user2_id: table.host_id
+            user2_id: table.created_by
           })
           .select()
           .single();
@@ -213,7 +213,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       const { data, error } = await supabase
         .from('coffee_tables')
         .select('*')
-        .eq('host_id', user.id)
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -244,7 +244,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
         .from('coffee_tables')
         .select(`
           *,
-          profiles:profiles!coffee_tables_host_id_fkey (
+          profiles:profiles!coffee_tables_created_by_fkey (
             full_name,
             avatar_url
           ),
@@ -632,11 +632,11 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         disabled={
                           joiningTableId === table.id || 
                           table.table_participants?.some(p => p.user_id === user?.id) || 
-                          user?.id === table.host_id ||
+                          user?.id === table.created_by ||
                           ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
                         }
                         className={`w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold transition-all shadow-lg ${
-                          table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id
+                          table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.created_by
                             ? 'bg-green-50 text-green-700 border border-green-200 shadow-none cursor-default'
                             : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
                               ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
@@ -645,7 +645,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                       >
                         {joiningTableId === table.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id ? (
+                        ) : table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.created_by ? (
                           <UserIcon className="w-4 h-4" />
                         ) : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4)) ? (
                           <X className="w-4 h-4" />
@@ -655,7 +655,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         <span>
                           {joiningTableId === table.id 
                             ? (lang === 'IT' ? 'Invio...' : 'Sending...') 
-                            : user?.id === table.host_id
+                            : user?.id === table.created_by
                               ? (lang === 'IT' ? 'Tuo tavolo' : 'Your table')
                               : table.table_participants?.some(p => p.user_id === user?.id)
                                 ? (lang === 'IT' ? 'Sei già nel tavolo' : 'You joined')
@@ -871,7 +871,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
                     try {
                       const tableData = {
-                        host_id: user.id,
+                        created_by: user.id,
                         title: coffeeTitle,
                         bar_name: coffeeBar,
                         coffee_date: coffeeDate,
