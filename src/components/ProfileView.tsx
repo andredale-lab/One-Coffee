@@ -24,8 +24,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
     'Bocconi / Navigli',
     'Bicocca',
     'Porta Garibaldi / Isola',
-    'Brera',
-    'Porta Romana',
+    'Bovisa',
+    'St. Amborgio',
     'CityLife',
     'Indifferente'
   ];

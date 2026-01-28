@@ -23,8 +23,8 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
     'Bocconi / Navigli',
     'Bicocca',
     'Porta Garibaldi / Isola',
-    'Brera',
-    'Porta Romana',
+    'Bovisa',
+    'St. Amborgio',
     'CityLife',
     'Indifferente'
   ];
