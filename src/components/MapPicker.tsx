@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { X, Check, Loader2 } from 'lucide-react';
+import { X, Check, Loader2, Search } from 'lucide-react';
 
 // Fix Leaflet icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -20,6 +20,16 @@ interface MapPickerProps {
   onSelect: (location: string) => void;
   onClose: () => void;
   lang: 'IT' | 'EN';
+}
+
+function MapUpdater({ center }: { center: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, 16);
+    }
+  }, [center, map]);
+  return null;
 }
 
 function LocationMarker({ onLocationFound }: { onLocationFound: (lat: number, lng: number) => void }) {
@@ -111,6 +121,12 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
 
   const t = {
     IT: {
@@ -119,7 +135,8 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
       cancel: 'Annulla',
       instruction: 'Clicca sulla mappa per selezionare un luogo',
       loading: 'Ricerca indirizzo...',
-      selected: 'Selezionato:'
+      selected: 'Selezionato:',
+      searchPlaceholder: 'Cerca bar o indirizzo...'
     },
     EN: {
       title: 'Select a bar',
@@ -127,9 +144,33 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
       cancel: 'Cancel',
       instruction: 'Click on the map to select a place',
       loading: 'Finding address...',
-      selected: 'Selected:'
+      selected: 'Selected:',
+      searchPlaceholder: 'Search bar or address...'
     }
   }[lang];
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    setSearchResults([]);
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`);
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectResult = (result: any) => {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+    setMapCenter([lat, lon]);
+    setSearchResults([]);
+    setSearchQuery(result.display_name.split(',')[0]); 
+  };
 
   const handleLocationSelect = async (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
@@ -138,20 +179,16 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
       const data = await response.json();
       
-      // Try to get the name of the place (amenity, shop, etc) or fallback to road
       let placeName = '';
       if (data.address) {
          placeName = data.address.amenity || data.address.shop || data.address.tourism || data.address.building || data.address.leisure || '';
          
-         // If we found a specific name, append road/city
          if (placeName) {
             placeName += `, ${data.address.road || ''}`;
          } else {
-            // Otherwise use formatted name but keep it short if possible
             placeName = (data.address.road || '') + ', ' + (data.address.suburb || data.address.city || '');
          }
          
-         // Fallback if everything is empty
          if (!placeName.replace(/, /g, '').trim()) {
             placeName = data.display_name.split(',').slice(0, 2).join(',');
          }
@@ -171,14 +208,56 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">{t.title}</h3>
-              <p className="text-sm text-gray-500">{t.instruction}</p>
+        
+        {/* Header with Search */}
+        <div className="p-4 border-b border-gray-100 flex flex-col gap-3 bg-white z-10">
+            <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">{t.title}</h3>
+                  <p className="text-sm text-gray-500">{t.instruction}</p>
+                </div>
+                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <X className="w-6 h-6 text-gray-500" />
-            </button>
+            
+            <div className="relative">
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder={t.searchPlaceholder}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 transition-shadow"
+                        />
+                        <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <button 
+                        onClick={handleSearch}
+                        disabled={isSearching}
+                        className="bg-amber-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[3rem]"
+                    >
+                        {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                    </button>
+                </div>
+
+                {searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white mt-1 rounded-lg shadow-xl border border-gray-100 max-h-60 overflow-y-auto z-50">
+                        {searchResults.map((result, i) => (
+                            <button
+                                key={i}
+                                onClick={() => selectResult(result)}
+                                className="w-full text-left p-3 hover:bg-amber-50 transition-colors border-b border-gray-50 last:border-0"
+                            >
+                                <p className="font-medium text-gray-900 line-clamp-1">{result.display_name.split(',')[0]}</p>
+                                <p className="text-xs text-gray-500 line-clamp-1">{result.display_name}</p>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
         
         <div className="flex-1 relative z-0">
@@ -191,6 +270,7 @@ export default function MapPicker({ onSelect, onClose, lang }: MapPickerProps) {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <MapUpdater center={mapCenter} />
                 <LocationMarker onLocationFound={handleLocationSelect} />
                 <NearbyBars onSelectBar={(name, lat, lng) => {
                   setSelectedLocation({ lat, lng });
