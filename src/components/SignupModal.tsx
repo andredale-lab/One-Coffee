@@ -47,7 +47,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
       loginSubmit: 'Accedi',
       submitting: 'Registrazione...',
       loggingIn: 'Accesso in corso...',
-      success: 'Controlla la tua email per confermare!',
+      success: 'Controlla la tua email per confermare! Ti consigliamo di aggiungere una foto profilo una volta effettuato l\'accesso.',
       loginSuccess: 'Bentornato!',
       error: 'Errore durante la registrazione.',
       loginError: "Errore durante l'accesso.",
@@ -71,7 +71,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
       loginSubmit: 'Log In',
       submitting: 'Signing up...',
       loggingIn: 'Logging in...',
-      success: 'Check your email to confirm!',
+      success: 'Check your email to confirm! We recommend adding a profile picture once you log in.',
       loginSuccess: 'Welcome back!',
       error: 'Error during registration.',
       loginError: 'Error during login.',
@@ -261,6 +261,7 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t.interests}</label>
                     <textarea
+                      required
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                       value={formData.interests}
