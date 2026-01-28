@@ -871,12 +871,13 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
                     try {
                       const tableData = {
-                        host_id: user.id,
                         title: coffeeTitle,
-                        bar_name: coffeeBar,
-                        coffee_date: coffeeDate,
-                        coffee_time: coffeeTime,
-                        max_participants: maxParticipants
+                        bar_name: coffeeBar || null,
+                        coffee_date: coffeeDate || null,
+                        coffee_time: coffeeTime || null,
+                        host_id: user.id,
+                        max_participants: maxParticipants || 4,
+                        description: null
                       };
 
                       let data, error;
