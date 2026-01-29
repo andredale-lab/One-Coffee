@@ -69,6 +69,35 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
     return String(val).replace(/([a-zà-ù])([A-Z])/g, '$1, $2');
   };
 
+  const handleLeaveTable = async (table: CoffeeTable) => {
+    if (!user) return;
+
+    if (!window.confirm(lang === 'IT' ? 'Vuoi davvero abbandonare questo tavolo?' : 'Do you really want to leave this table?')) {
+      return;
+    }
+
+    setJoiningTableId(table.id);
+
+    try {
+      const { error } = await supabase
+        .from('table_participants')
+        .delete()
+        .eq('table_id', table.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchTables(); // Refresh UI
+      alert(lang === 'IT' ? 'Hai abbandonato il tavolo.' : 'You left the table.');
+      
+    } catch (error) {
+      console.error('Error leaving table:', error);
+      alert(lang === 'IT' ? 'Errore durante l\'abbandono del tavolo' : 'Error leaving table');
+    } finally {
+      setJoiningTableId(null);
+    }
+  };
+
   const handleJoinTable = async (table: CoffeeTable) => {
     if (!user) return;
 
@@ -355,7 +384,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       noTables: 'Nessun tavolo disponibile al momento.',
       emptyTables: 'Non ci sono tavoli attivi. Creane uno tu!',
       participants: 'Partecipanti',
-      maxParticipantsLabel: 'Numero massimo di persone (incluso te)'
+      maxParticipantsLabel: 'Numero massimo di persone (incluso te)',
+      leave: 'Abbandona'
     },
     EN: {
       title: 'Community',
@@ -387,7 +417,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       noTables: 'No tables available at the moment.',
       emptyTables: 'There are no active tables. Create one!',
       participants: 'Participants',
-      maxParticipantsLabel: 'Maximum number of people (including you)'
+      maxParticipantsLabel: 'Maximum number of people (including you)',
+      leave: 'Leave'
     }
   }[lang];
 
@@ -628,24 +659,34 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                       )}
 
                       <button
-                        onClick={() => handleJoinTable(table)}
+                        onClick={() => {
+                          if (table.table_participants?.some(p => p.user_id === user?.id)) {
+                            handleLeaveTable(table);
+                          } else {
+                            handleJoinTable(table);
+                          }
+                        }}
                         disabled={
                           joiningTableId === table.id || 
-                          table.table_participants?.some(p => p.user_id === user?.id) || 
                           user?.id === table.host_id ||
-                          ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
+                          (!table.table_participants?.some(p => p.user_id === user?.id) &&
+                           (table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
                         }
                         className={`w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold transition-all shadow-lg ${
-                          table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id
-                            ? 'bg-green-50 text-green-700 border border-green-200 shadow-none cursor-default'
-                            : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                              : 'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-200/50'
+                          table.table_participants?.some(p => p.user_id === user?.id)
+                            ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                            : user?.id === table.host_id
+                              ? 'bg-green-50 text-green-700 border border-green-200 shadow-none cursor-default'
+                              : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                                : 'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-200/50'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {joiningTableId === table.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : table.table_participants?.some(p => p.user_id === user?.id) || user?.id === table.host_id ? (
+                        ) : table.table_participants?.some(p => p.user_id === user?.id) ? (
+                          <X className="w-4 h-4" />
+                        ) : user?.id === table.host_id ? (
                           <UserIcon className="w-4 h-4" />
                         ) : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4)) ? (
                           <X className="w-4 h-4" />
@@ -654,11 +695,11 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                         )}
                         <span>
                           {joiningTableId === table.id 
-                            ? (lang === 'IT' ? 'Invio...' : 'Sending...') 
+                            ? (lang === 'IT' ? 'Attendi...' : 'Waiting...') 
                             : user?.id === table.host_id
                               ? (lang === 'IT' ? 'Tuo tavolo' : 'Your table')
                               : table.table_participants?.some(p => p.user_id === user?.id)
-                                ? (lang === 'IT' ? 'Sei già nel tavolo' : 'You joined')
+                                ? t.leave
                                 : ((table.table_participants?.length || 0) + 1 >= (table.max_participants || 4))
                                   ? (lang === 'IT' ? 'Tavolo pieno' : 'Table full')
                                   : (lang === 'IT' ? 'Unisciti' : 'Join')}
