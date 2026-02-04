@@ -7,10 +7,13 @@ interface SignupModalProps {
   onClose: () => void;
   lang: 'IT' | 'EN';
   canClose?: boolean;
+  onOpenPrivacy?: () => void;
+  onOpenTerms?: () => void;
 }
 
-export default function SignupModal({ isOpen, onClose, lang, canClose = true }: SignupModalProps) {
+export default function SignupModal({ isOpen, onClose, lang, canClose = true, onOpenPrivacy, onOpenTerms }: SignupModalProps) {
   const [isLogin, setIsLogin] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -110,6 +113,12 @@ export default function SignupModal({ isOpen, onClose, lang, canClose = true }: 
     setStatus('idle');
     setErrorMessage('');
     
+    if (!isLogin && !acceptTerms) {
+      setErrorMessage(lang === 'IT' ? 'Devi accettare i termini e la privacy policy.' : 'You must accept terms and privacy policy.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
@@ -287,6 +296,29 @@ export default function SignupModal({ isOpen, onClose, lang, canClose = true }: 
                         <option key={zone} value={zone}>{zone}</option>
                       ))}
                     </select>
+                  </div>
+                )}
+
+                {!isLogin && (
+                  <div className="flex items-start gap-2 text-sm text-gray-600">
+                    <input 
+                      type="checkbox" 
+                      required 
+                      checked={acceptTerms}
+                      onChange={e => setAcceptTerms(e.target.checked)}
+                      className="mt-1 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>
+                      {lang === 'IT' ? 'Accetto i ' : 'I accept the '}
+                      <button type="button" onClick={onOpenTerms} className="text-amber-700 hover:underline font-medium">
+                        {lang === 'IT' ? 'Termini di Servizio' : 'Terms of Service'}
+                      </button>
+                      {lang === 'IT' ? ' e la ' : ' and the '}
+                      <button type="button" onClick={onOpenPrivacy} className="text-amber-700 hover:underline font-medium">
+                        {lang === 'IT' ? 'Privacy Policy' : 'Privacy Policy'}
+                      </button>
+                      .
+                    </span>
                   </div>
                 )}
 

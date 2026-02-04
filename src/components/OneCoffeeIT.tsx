@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { PrivacyPolicy } from './PrivacyPolicy';
+import { TermsOfService } from './TermsOfService';
 import {
   Coffee,
   Clock,
@@ -31,7 +33,7 @@ export default function OneCoffeeIT() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages' | 'privacy' | 'terms'>('home');
   const [unreadCount, setUnreadCount] = useState(0);
   const isApp = Capacitor.isNativePlatform();
 
@@ -601,6 +603,8 @@ export default function OneCoffeeIT() {
       {currentView === 'profile' && user && <ProfileView user={user} lang="IT" />}
       {currentView === 'community' && user && <CommunityView user={user} lang="IT" onBack={() => setCurrentView('home')} />}
       {currentView === 'messages' && user && <MessagesView user={user} lang="IT" onMessagesRead={fetchUnread} />}
+      {currentView === 'privacy' && <PrivacyPolicy onBack={() => setCurrentView('home')} />}
+      {currentView === 'terms' && <TermsOfService onBack={() => setCurrentView('home')} />}
 
       {/* Footer */}
       {(!isApp || user) && (
@@ -654,15 +658,20 @@ export default function OneCoffeeIT() {
               <h4 className="text-white font-semibold mb-4">Legale</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a
-                    href="https://www.iubenda.com/privacy-policy/98586684"
-                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-amber-500 transition-colors"
-                    title="Privacy Policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setCurrentView('privacy')}
+                    className="hover:text-amber-500 transition-colors text-left"
                   >
                     Privacy Policy
-                  </a>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setCurrentView('terms')}
+                    className="hover:text-amber-500 transition-colors text-left"
+                  >
+                    Termini di Servizio
+                  </button>
                 </li>
               </ul>
             </div>
@@ -684,6 +693,8 @@ export default function OneCoffeeIT() {
         }} 
         lang="IT" 
         canClose={!isApp || !!user}
+        onOpenPrivacy={() => { setIsSignupOpen(false); setCurrentView('privacy'); }}
+        onOpenTerms={() => { setIsSignupOpen(false); setCurrentView('terms'); }}
       />
       {user && (
         <ProfileSetupModal

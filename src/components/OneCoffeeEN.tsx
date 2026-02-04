@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { PrivacyPolicy } from './PrivacyPolicy';
+import { TermsOfService } from './TermsOfService';
 import {
   Coffee,
   Clock,
@@ -25,6 +27,7 @@ export default function OneCoffeeEN() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [currentView, setCurrentView] = useState<'home' | 'privacy' | 'terms'>('home');
   const isApp = Capacitor.isNativePlatform();
 
   useEffect(() => {
@@ -159,7 +162,7 @@ export default function OneCoffeeEN() {
       </nav>
 
       {/* Hero Section */}
-      {(!isApp || user) && (
+      {currentView === 'home' && (!isApp || user) && (
       <>
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <div className="max-w-7xl mx-auto">
@@ -440,6 +443,9 @@ export default function OneCoffeeEN() {
       </>
       )}
 
+      {currentView === 'privacy' && <PrivacyPolicy onBack={() => setCurrentView('home')} />}
+      {currentView === 'terms' && <TermsOfService onBack={() => setCurrentView('home')} />}
+
       {!isApp && (
       <>
       {/* Footer */}
@@ -469,8 +475,8 @@ export default function OneCoffeeEN() {
               <h3 className="text-white font-bold mb-6">Support</h3>
               <ul className="space-y-4">
                 <li><a href="mailto:contact@one-coffee.it" className="hover:text-amber-500 transition-colors">Contact us</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Terms of Service</a></li>
+                <li><button onClick={() => setCurrentView('privacy')} className="hover:text-amber-500 transition-colors text-left">Privacy Policy</button></li>
+                <li><button onClick={() => setCurrentView('terms')} className="hover:text-amber-500 transition-colors text-left">Terms of Service</button></li>
               </ul>
             </div>
             
@@ -496,6 +502,8 @@ export default function OneCoffeeEN() {
         onClose={() => setIsSignupOpen(false)} 
         lang="EN" 
         canClose={!isApp || !!user}
+        onOpenPrivacy={() => { setIsSignupOpen(false); setCurrentView('privacy'); }}
+        onOpenTerms={() => { setIsSignupOpen(false); setCurrentView('terms'); }}
       />
       {user && (
         <ProfileSetupModal
