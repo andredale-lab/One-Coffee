@@ -63,10 +63,27 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const [maxParticipants, setMaxParticipants] = useState(4);
   const [joiningTableId, setJoiningTableId] = useState<string | null>(null);
 
+  const [currentUserInterests, setCurrentUserInterests] = useState<string[]>([]);
+
   const formatList = (val: any) => {
     if (!val) return "-";
     if (Array.isArray(val)) return val.join(", ");
     return String(val).replace(/([a-zà-ù])([A-Z])/g, '$1, $2');
+  };
+
+  const calculateInterestScore = (profileInterests: string) => {
+    if (!currentUserInterests.length || !profileInterests) return 0;
+    
+    const pInterests = profileInterests.toLowerCase().split(',').map(i => i.trim());
+    let score = 0;
+    
+    currentUserInterests.forEach(myInterest => {
+      if (pInterests.some(p => p.includes(myInterest) || myInterest.includes(p))) {
+        score++;
+      }
+    });
+    
+    return score;
   };
 
   const handleLeaveTable = async (table: CoffeeTable) => {
@@ -302,6 +319,17 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
 
     setLoading(true);
 
+    // Fetch current user interests first
+    const { data: userData } = await supabase
+      .from('profiles')
+      .select('interests')
+      .eq('id', user.id)
+      .single();
+
+    if (userData?.interests) {
+      setCurrentUserInterests(userData.interests.toLowerCase().split(',').map(i => i.trim()));
+    }
+
     const { data, error } = await supabase 
       .from('profiles') 
       .select('*') 
@@ -317,10 +345,16 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
     setLoading(false);
   };
 
-  const filteredProfiles = profiles.filter(profile => 
-    (profile.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (profile.interests || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProfiles = profiles
+    .filter(profile => 
+      (profile.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (profile.interests || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const scoreA = calculateInterestScore(a.interests);
+      const scoreB = calculateInterestScore(b.interests);
+      return scoreB - scoreA; // Sort descending by score
+    });
 
   const hourOptions = Array.from({ length: 17 }, (_, i) => (i + 6).toString().padStart(2, '0')); // 06 to 22
   const minuteOptions = ['00', '15', '30', '45'];

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
   Coffee,
   Clock,
@@ -32,6 +33,7 @@ export default function OneCoffeeIT() {
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages'>('home');
   const [unreadCount, setUnreadCount] = useState(0);
+  const isApp = Capacitor.isNativePlatform();
 
   const fetchUnread = async () => {
     if (!user) return;
@@ -82,6 +84,12 @@ export default function OneCoffeeIT() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  useEffect(() => {
+    if (isApp && !user) {
+      setIsSignupOpen(true);
+    }
+  }, [isApp, user]);
 
   useEffect(() => {
     // Check if we need to open signup modal (e.g. after "Create new account" click)
@@ -418,6 +426,7 @@ export default function OneCoffeeIT() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
+      {(!isApp || user) && (
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -585,14 +594,16 @@ export default function OneCoffeeIT() {
           </div>
         )}
       </nav>
+      )}
 
       {/* Main Content */}
-      {currentView === 'home' && <HomeContent />}
+      {currentView === 'home' && (!isApp || user) && <HomeContent />}
       {currentView === 'profile' && user && <ProfileView user={user} lang="IT" />}
       {currentView === 'community' && user && <CommunityView user={user} lang="IT" onBack={() => setCurrentView('home')} />}
       {currentView === 'messages' && user && <MessagesView user={user} lang="IT" onMessagesRead={fetchUnread} />}
 
       {/* Footer */}
+      {(!isApp || user) && (
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
@@ -662,6 +673,9 @@ export default function OneCoffeeIT() {
           </div>
         </div>
       </footer>
+      )}
+
+      {/* Signup Modal */}
       <SignupModal 
         isOpen={isSignupOpen} 
         onClose={() => {
@@ -669,6 +683,7 @@ export default function OneCoffeeIT() {
           localStorage.removeItem('openSignupOnLoad');
         }} 
         lang="IT" 
+        canClose={!isApp || !!user}
       />
       {user && (
         <ProfileSetupModal

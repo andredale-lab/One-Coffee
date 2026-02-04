@@ -6,9 +6,10 @@ interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang: 'IT' | 'EN';
+  canClose?: boolean;
 }
 
-export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps) {
+export default function SignupModal({ isOpen, onClose, lang, canClose = true }: SignupModalProps) {
   const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -169,14 +170,16 @@ export default function SignupModal({ isOpen, onClose, lang }: SignupModalProps)
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
         <div className="p-6 relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
+          {canClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          )}
           
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{isLogin ? t.loginTitle : t.title}</h2>
           

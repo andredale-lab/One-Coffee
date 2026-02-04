@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
   Coffee,
   Clock,
@@ -24,6 +25,7 @@ export default function OneCoffeeEN() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const isApp = Capacitor.isNativePlatform();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -157,6 +159,8 @@ export default function OneCoffeeEN() {
       </nav>
 
       {/* Hero Section */}
+      {(!isApp || user) && (
+      <>
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -433,69 +437,50 @@ export default function OneCoffeeEN() {
           <p className="text-amber-100 text-lg">Limited spots. Milan only for now.</p>
         </div>
       </section>
+      </>
+      )}
 
+      {!isApp && (
+      <>
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-2 mb-6">
                 <Coffee className="w-8 h-8 text-amber-500" />
                 <span className="text-xl font-bold text-white">One-Coffee</span>
               </div>
-              <p className="text-sm text-gray-400">
-                20 minutes, one new person. Networking as it should be.
+              <p className="text-gray-400">
+                The networking app for students who want to meet real people.
               </p>
             </div>
-
+            
             <div>
-              <h4 className="text-white font-semibold mb-4">Links</h4>
-              <ul className="space-y-2 text-sm">
+              <h3 className="text-white font-bold mb-6">Product</h3>
+              <ul className="space-y-4">
                 <li><a href="#how-it-works" className="hover:text-amber-500 transition-colors">How it works</a></li>
-                <li><a href="#why" className="hover:text-amber-500 transition-colors">Why</a></li>
+                <li><a href="#why" className="hover:text-amber-500 transition-colors">Why One-Coffee</a></li>
                 <li><a href="#faq" className="hover:text-amber-500 transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Social</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a
-                    href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-amber-500 transition-colors"
-                  >
-                    LinkedIn
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:contact@one-coffee.it"
-                    className="hover:text-amber-500 transition-colors"
-                  >
-                    contact@one-coffee.it
-                  </a>
-                </li>
               </ul>
             </div>
             
             <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a
-                    href="https://www.iubenda.com/privacy-policy/98586684"
-                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-amber-500 transition-colors"
-                    title="Privacy Policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Privacy Policy
-                  </a>
-                </li>
+              <h3 className="text-white font-bold mb-6">Support</h3>
+              <ul className="space-y-4">
+                <li><a href="mailto:contact@one-coffee.it" className="hover:text-amber-500 transition-colors">Contact us</a></li>
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Terms of Service</a></li>
               </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-bold mb-6">Social</h3>
+              <div className="flex space-x-4">
+                <a href="https://www.linkedin.com/company/one-coffee/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className="bg-gray-800 p-2 rounded-lg hover:bg-amber-700 transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -504,10 +489,13 @@ export default function OneCoffeeEN() {
           </div>
         </div>
       </footer>
+      </>
+      )}
       <SignupModal 
         isOpen={isSignupOpen} 
         onClose={() => setIsSignupOpen(false)} 
         lang="EN" 
+        canClose={!isApp || !!user}
       />
       {user && (
         <ProfileSetupModal

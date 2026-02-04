@@ -1,13 +1,17 @@
 import { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import OneCoffeeIT from './components/OneCoffeeIT';
 import OneCoffeeEN from './components/OneCoffeeEN';
+import CookieConsent from './components/CookieConsent';
 import { Globe } from 'lucide-react';
 
 function App() {
   const [language, setLanguage] = useState<'it' | 'en'>('it');
+  const isWeb = !Capacitor.isNativePlatform();
 
   return (
     <div>
+      {isWeb && <CookieConsent language={language} />}
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setLanguage(language === 'it' ? 'en' : 'it')}

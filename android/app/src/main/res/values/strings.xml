@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">One Coffee</string>
+    <string name="title_activity_main">One Coffee</string>
+    <string name="package_name">com.onecoffee.app</string>
+    <string name="custom_url_scheme">com.onecoffee.app</string>
+</resources>
