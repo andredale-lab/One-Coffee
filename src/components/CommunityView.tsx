@@ -303,7 +303,16 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       console.log('FETCH TABLES raw', { data, error });
 
       if (error) console.error('fetchTables error:', error);
-      if (data) setTables(data as any);
+      if (data) {
+        // Filter out past tables (keep only future ones)
+        const now = new Date();
+        const validTables = (data as any).filter((t: any) => {
+          if (!t.coffee_date || !t.coffee_time) return false;
+          const tableDate = new Date(`${t.coffee_date}T${t.coffee_time}`);
+          return tableDate > now;
+        });
+        setTables(validTables);
+      }
     } catch (err) {
       console.warn('Error fetching tables:', err);
     } finally {

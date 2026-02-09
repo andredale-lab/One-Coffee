@@ -24,6 +24,7 @@ import ProfileSetupModal from './ProfileSetupModal';
 import ProfileView from './ProfileView';
 import CommunityView from './CommunityView';
 import MessagesView from './MessagesView';
+import FeedbackModal from './FeedbackModal';
 import { supabase } from '../lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -35,6 +36,7 @@ export default function OneCoffeeIT() {
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages' | 'privacy' | 'terms'>('home');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [feedbackTable, setFeedbackTable] = useState<{id: string, title: string} | null>(null);
   const isApp = Capacitor.isNativePlatform();
 
   const fetchUnread = async () => {
@@ -65,6 +67,89 @@ export default function OneCoffeeIT() {
       setUnreadCount(count);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+
+    const checkPendingFeedback = async () => {
+      try {
+        console.log('🔍 Controllo feedback in corso... [VERSIONE AGGIORNATA]'); // DEBUG
+        
+        // 1. Get tables I hosted
+        const { data: hostedTables, error: hostedError } = await supabase
+          .from('coffee_tables')
+          .select('id, title, coffee_date, coffee_time')
+          .eq('host_id', user.id);
+        
+        if (hostedError) console.error('Error fetching hosted tables:', hostedError);
+
+        // 2. Get tables I participated in
+        const { data: participatedTables, error: partError } = await supabase
+          .from('coffee_tables')
+          .select('id, title, coffee_date, coffee_time, table_participants!inner(user_id)')
+          .eq('table_participants.user_id', user.id);
+        
+        if (partError) console.error('Error fetching participated tables:', partError);
+
+        // Combine and deduplicate
+        const allTables = [...(hostedTables || []), ...(participatedTables || [])];
+        const uniqueTables = Array.from(new Map(allTables.map(t => [t.id, t])).values());
+
+        console.log(`📊 Tavoli trovati: ${uniqueTables.length} (Hosted: ${hostedTables?.length || 0}, Participated: ${participatedTables?.length || 0})`); // DEBUG
+
+        if (uniqueTables.length === 0) {
+          console.log('ℹ️ Nessun tavolo trovato per questo utente.'); // DEBUG
+          return;
+        }
+
+        const now = new Date();
+        
+        // Filter for expired tables (> 15 mins ago)
+        const expiredTables = uniqueTables.filter(t => {
+          if (!t.coffee_date || !t.coffee_time) return false;
+          const dateTimeStr = `${t.coffee_date}T${t.coffee_time}`;
+          const tableDate = new Date(dateTimeStr);
+          // Add 15 mins to table date
+          const expirationTime = new Date(tableDate.getTime() + 15 * 60000);
+          
+          const isExpired = now > expirationTime;
+          if (isExpired) {
+             console.log(`✅ Tavolo scaduto trovato: ${t.title} (Scaduto il: ${expirationTime.toLocaleTimeString()})`); // DEBUG
+          }
+          return isExpired;
+        });
+
+        if (expiredTables.length === 0) {
+           console.log('⏳ Nessun tavolo scaduto da più di 15 minuti.'); // DEBUG
+           return;
+        }
+
+        // 2. Get my feedbacks
+        const { data: myFeedbacks } = await supabase
+          .from('feedback')
+          .select('table_id')
+          .eq('user_id', user.id);
+
+        const reviewedTableIds = new Set(myFeedbacks?.map(f => f.table_id) || []);
+
+        // 3. Find first unreviewed expired table
+        const toReview = expiredTables.find(t => !reviewedTableIds.has(t.id));
+
+        if (toReview) {
+          console.log('🚀 Apertura modal feedback per:', toReview.title); // DEBUG
+          setFeedbackTable({ id: toReview.id, title: toReview.title });
+        } else {
+          console.log('✨ Tutti i tavoli scaduti sono già stati recensiti.'); // DEBUG
+        }
+      } catch (err) {
+        console.error('Error checking feedback:', err);
+      }
+    };
+
+    checkPendingFeedback();
+    const interval = setInterval(checkPendingFeedback, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -701,6 +786,17 @@ export default function OneCoffeeIT() {
           isOpen={isProfileSetupOpen}
           onClose={() => setIsProfileSetupOpen(false)}
           user={user}
+          lang="IT"
+        />
+      )}
+
+      {/* Feedback Modal */}
+      {feedbackTable && (
+        <FeedbackModal
+          isOpen={!!feedbackTable}
+          onClose={() => setFeedbackTable(null)}
+          tableId={feedbackTable.id}
+          tableName={feedbackTable.title}
           lang="IT"
         />
       )}
