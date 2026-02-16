@@ -37,6 +37,7 @@ export default function OneCoffeeIT() {
   const [currentView, setCurrentView] = useState<'home' | 'profile' | 'community' | 'messages' | 'privacy' | 'terms'>('home');
   const [unreadCount, setUnreadCount] = useState(0);
   const [feedbackTable, setFeedbackTable] = useState<{id: string, title: string} | null>(null);
+  const [hasCreatedCoffee, setHasCreatedCoffee] = useState(false);
   const isApp = Capacitor.isNativePlatform();
 
   const fetchUnread = async () => {
@@ -65,6 +66,20 @@ export default function OneCoffeeIT() {
 
     if (!error && count !== null) {
       setUnreadCount(count);
+    }
+  };
+
+  const loadHasCreatedCoffee = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('coffee_tables')
+      .select('id')
+      .eq('host_id', userId)
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      setHasCreatedCoffee(true);
+    } else {
+      setHasCreatedCoffee(false);
     }
   };
 
@@ -190,9 +205,11 @@ export default function OneCoffeeIT() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
-
-
-
+      if (currentUser) {
+        loadHasCreatedCoffee(currentUser.id);
+      } else {
+        setHasCreatedCoffee(false);
+      }
 
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
@@ -205,9 +222,11 @@ export default function OneCoffeeIT() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
-
-
-
+      if (currentUser) {
+        loadHasCreatedCoffee(currentUser.id);
+      } else {
+        setHasCreatedCoffee(false);
+      }
 
       if (currentUser && !currentUser.user_metadata?.interests) {
         setIsProfileSetupOpen(true);
@@ -254,9 +273,23 @@ export default function OneCoffeeIT() {
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 )}
-                <a href="#come-funziona" className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200 flex items-center justify-center">
-                  Scopri di più
-                </a>
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      const section = document.getElementById('come-funziona');
+                      if (section) {
+                        section.scrollIntoView({ behavior: 'smooth' });
+                      }
+                      return;
+                    }
+                    localStorage.setItem('openCreateCoffeeOnLoad', 'true');
+                    setCurrentView('community');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200 flex items-center justify-center"
+                >
+                  {user ? (hasCreatedCoffee ? 'Crea caffè' : 'Che ne dici di creare il primo caffè?') : 'Scopri di più'}
+                </button>
               </div>
             </div>
 
@@ -347,8 +380,8 @@ export default function OneCoffeeIT() {
                 <div className="w-14 h-14 bg-orange-600 rounded-2xl flex items-center justify-center mb-4">
                   <span className="text-white font-bold text-xl">2</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Match istantaneo</h3>
-                <p className="text-sm text-gray-600">Persone compatibili subito</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Crea caffè o unisciti a un caffè</h3>
+                <p className="text-sm text-gray-600">Organizza un nuovo tavolo o unisciti a quelli creati da altri utenti.</p>
               </div>
             </div>
 
@@ -368,7 +401,7 @@ export default function OneCoffeeIT() {
                   <span className="text-white font-bold text-xl">4</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Conosci persone</h3>
-                <p className="text-sm text-gray-600">20 minuti reali, faccia a faccia</p>
+                <p className="text-sm text-gray-600">20 minuti o più, faccia a faccia</p>
               </div>
             </div>
           </div>

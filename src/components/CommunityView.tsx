@@ -86,6 +86,15 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
     return score;
   };
 
+  useEffect(() => {
+    const shouldOpenCreate = localStorage.getItem('openCreateCoffeeOnLoad');
+    if (shouldOpenCreate === 'true') {
+      setShowCreateCoffeeModal(true);
+      setViewMode('profiles');
+      localStorage.removeItem('openCreateCoffeeOnLoad');
+    }
+  }, []);
+
   const handleLeaveTable = async (table: CoffeeTable) => {
     if (!user) return;
 
@@ -252,6 +261,17 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
     fetchProfiles();
     fetchMyTable();
   }, [user]);
+
+  // Auto-refresh tables every minute to remove expired ones
+  useEffect(() => {
+    if (viewMode !== 'tables') return;
+    
+    const interval = setInterval(() => {
+      fetchTables();
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [viewMode]);
 
   const fetchMyTable = async () => {
     try {
