@@ -48,13 +48,8 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
     const parseList = (s: string) =>
       s.split(",").map(x => x.trim()).filter(Boolean);
 
-    const toPgArrayLiteral = (values: string[]) =>
-      `{${values.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')}}`;
-
     const availabilityDaysArray = parseList(availabilityDays);
     const availabilityTimeArray = parseList(availabilityTime);
-    const availabilityDaysLiteral = toPgArrayLiteral(availabilityDaysArray);
-    const availabilityTimeLiteral = toPgArrayLiteral(availabilityTimeArray);
 
     try {
       // 1️⃣ controlla sessione 
@@ -71,22 +66,38 @@ export default function ProfileSetupModal({ isOpen, onClose, user, lang }: Profi
       // 2️⃣ user sicuro 
       const user = session.user; 
  
-      // 3️⃣ update profilo 
-      const { error } = await supabase 
+      // 3️⃣ update profilo (DB)
+      const { error: profileError } = await supabase 
         .from('profiles') 
         .update({ 
           interests,
-          availability_days: availabilityDaysLiteral,
-          availability_time: availabilityTimeLiteral
+          availability_days: availabilityDaysArray,
+          availability_time: availabilityTimeArray
         }) 
         .eq('id', user.id); 
  
-      console.log('UPDATE ERROR:', error);
+      if (profileError) {
+        console.error('PROFILE UPDATE ERROR:', profileError);
+        throw profileError;
+      }
 
-      if (error) throw error;
+      // 4️⃣ update user metadata (Auth) - Fondamentale per evitare che la modale si riapra
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          interests,
+          availability_days: availabilityDaysArray,
+          availability_time: availabilityTimeArray
+        }
+      });
+
+      if (authError) {
+        console.error('AUTH UPDATE ERROR:', authError);
+        // Non blocchiamo tutto se fallisce solo l'update dei metadati, ma è meglio loggarlo
+      }
       
       onClose();
-      window.location.reload(); // Reload to reflect changes
+      // Ricarica per assicurarsi che tutti gli stati siano sincronizzati
+      window.location.reload(); 
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Errore nel salvataggio del profilo');
