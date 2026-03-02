@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { Search, MapPin, Coffee, User as UserIcon, Plus, X, CalendarDays, Clock, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import InvitationModal from './InvitationModal';
 import MapPicker from './MapPicker';
+import ProfileModal from './ProfileModal';
 
 interface Profile {
   id: string;
@@ -49,8 +50,8 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [viewProfile, setViewProfile] = useState<Profile | null>(null);
   const [invitations, setInvitations] = useState<any[]>([]);
-  const [showTableModal, setShowTableModal] = useState(false);
   const [showCreateCoffeeModal, setShowCreateCoffeeModal] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [myTable, setMyTable] = useState<{id?: string, bar: string, title: string, date: string, time: string, max_participants: number} | null>(null);
@@ -356,7 +357,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
       .single();
 
     if (userData?.interests) {
-      setCurrentUserInterests(userData.interests.toLowerCase().split(',').map(i => i.trim()));
+      setCurrentUserInterests(userData.interests.toLowerCase().split(',').map((i: string) => i.trim()));
     }
 
     const { data, error } = await supabase 
@@ -574,7 +575,11 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
           filteredProfiles.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProfiles.map((profile) => (
-                <div key={profile.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group">
+                <div 
+                  key={profile.id} 
+                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group cursor-pointer"
+                  onClick={() => setViewProfile(profile)}
+                >
                   <div className="p-6 space-y-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-4">
@@ -624,7 +629,7 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
                     )}
 
                     <button
-                      onClick={() => setSelectedProfile(profile)}
+                      onClick={(e) => { e.stopPropagation(); setSelectedProfile(profile); }}
                       className="w-full flex items-center justify-center space-x-2 bg-amber-50 text-amber-800 py-3 rounded-xl font-semibold transition-all group-hover:scale-[1.02] active:scale-[0.98] hover:bg-amber-700 hover:text-white"
                     >
                       <Coffee className="w-4 h-4" />
@@ -791,6 +796,17 @@ export default function CommunityView({ user, lang, onBack }: CommunityViewProps
         receiver={selectedProfile}
         lang={lang}
       />
+      {viewProfile && (
+        <ProfileModal
+          profile={viewProfile}
+          lang={lang}
+          onClose={() => setViewProfile(null)}
+          onInvite={(p) => {
+            setViewProfile(null);
+            setSelectedProfile(p);
+          }}
+        />
+      )}
 
       {/* Create Coffee Modal */}
       {showCreateCoffeeModal && (

@@ -41,8 +41,8 @@ export default function ProfileView({ user, lang }: ProfileViewProps) {
   const [isCropping, setIsCropping] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
-  const arrayToInput = (v: unknown) =>
-    Array.isArray(v) ? v.join(', ') : (v ?? '');
+  const arrayToInput = (v: unknown): string =>
+    Array.isArray(v) ? v.join(', ') : String(v ?? '');
 
   useEffect(() => {
     if (user) {

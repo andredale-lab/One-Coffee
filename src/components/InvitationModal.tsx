@@ -22,9 +22,6 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
   const [loading, setLoading] = useState(false);
   const [error] = useState('');
   const [success] = useState(false);
-  const [geoLoading, setGeoLoading] = useState(false);
-  const [geoError, setGeoError] = useState('');
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   if (!isOpen || !receiver) return null;
 
@@ -63,32 +60,7 @@ export default function InvitationModal({ isOpen, onClose, receiver, lang }: Inv
 
   const selectedUser = receiver;
 
-  const handleFindBarsNearMe = () => {
-    if (!navigator.geolocation) {
-      setGeoError(t.barsErrorUnsupported);
-      return;
-    }
-
-    setGeoLoading(true);
-    setGeoError('');
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setLocation({ lat: latitude, lng: longitude });
-        setGeoLoading(false);
-      },
-      () => {
-        setGeoError(t.barsErrorDenied);
-        setGeoLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
-
-  const mapsUrl = location
-    ? `https://www.google.com/maps/search/bar/@${location.lat},${location.lng},15z`
-    : 'https://www.google.com/maps/search/bar+vicino+a+me';
+  
 
   const handleSendInvite = async () => {
     setLoading(true);
